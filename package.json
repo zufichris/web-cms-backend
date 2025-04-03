@@ -1,29 +1,58 @@
 {
-  "name": "web-content-manager-backend",
-  "version": "1.0.0",
-  "description": "Manage website content dynamically",
-  "main": "app.js",
-  "scripts": {
-    "test": "npm run test"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/zufichris/web-cms-backend.git"
-  },
-  "keywords": [
-    "web-cms",
-    "cms",
-    "content-manager",
-    "website-conent",
-    "content",
-    "website",
-    "dynamic",
-    "website"
-  ],
-  "author": "zufichris",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/zufichris/web-cms-backend/issues"
-  },
-  "homepage": "https://github.com/zufichris/web-cms-backend#readme"
+    "name": "web-content-manager-backend",
+    "version": "1.0.0",
+    "description": "Manage website content dynamically",
+    "main": "index.ts",
+    "scripts": {
+        "build": "npx tsx scripts/build.ts",
+        "test": "npx tsx scripts/run-tests.ts",
+        "lint": "npx tsx scripts/lint.ts",
+        "start": "npx tsx scripts/build.ts && node build/src/index.js",
+        "dev": "nodemon --exec 'tsx' src/index.ts",
+        "format": "npx tsx scripts/format.ts",
+        "cleanup": "npx tsx scripts/cleanup.ts",
+        "generate:module": "tsx scripts/generate-module.ts"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/zufichris/web-cms-backend.git"
+    },
+    "keywords": [
+        "web-cms",
+        "cms",
+        "content-manager",
+        "website-conent",
+        "content",
+        "website",
+        "dynamic",
+        "website",
+        "typescript",
+        "nodejs",
+        "express"
+    ],
+    "author": "zufichris",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/zufichris/web-cms-backend/issues"
+    },
+    "homepage": "https://github.com/zufichris/web-cms-backend#readme",
+    "devDependencies": {
+        "@eslint/js": "^9.23.0",
+        "@types/express": "^5.0.1",
+        "@types/node": "^22.14.0",
+        "eslint": "^9.23.0",
+        "globals": "^16.0.0",
+        "nodemon": "^3.1.9",
+        "ts-node": "^10.9.2",
+        "tsconfig-paths": "^4.2.0",
+        "tsx": "^4.19.3",
+        "typescript": "^5.8.2",
+        "typescript-eslint": "^8.29.0"
+    },
+    "dependencies": {
+        "cors": "^2.8.5",
+        "dotenv": "^16.4.7",
+        "express": "^5.1.0",
+        "zod": "^3.24.2"
+    }
 }
