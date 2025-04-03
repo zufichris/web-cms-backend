@@ -1,0 +1,29 @@
+{
+  "name": "web-content-manager-backend",
+  "version": "1.0.0",
+  "description": "Manage website content dynamically",
+  "main": "app.js",
+  "scripts": {
+    "test": "npm run test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zufichris/web-cms-backend.git"
+  },
+  "keywords": [
+    "web-cms",
+    "cms",
+    "content-manager",
+    "website-conent",
+    "content",
+    "website",
+    "dynamic",
+    "website"
+  ],
+  "author": "zufichris",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/zufichris/web-cms-backend/issues"
+  },
+  "homepage": "https://github.com/zufichris/web-cms-backend#readme"
+}
