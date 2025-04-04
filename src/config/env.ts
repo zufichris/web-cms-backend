@@ -1,4 +1,4 @@
-import { logger } from "@/utils/logger";
+import { logger } from "@app/utils";
 import { z } from "zod";
 
 const envValidator = z.object({
@@ -9,16 +9,24 @@ const envValidator = z.object({
     .optional()
     .default(5000),
   in_prod: z.boolean().optional().default(false),
+  db_uri: z.string({
+    required_error: "MongoDB URI is required",
+  }),
 });
 
-export const env = {
+const parsedEnv = envValidator.safeParse({
   in_prod: process.env.NODE_ENV === "prod",
-  port: process.env.PORT as number | undefined,
-} as z.infer<typeof envValidator>;
+  port: process.env.PORT ? parseInt(process.env.PORT) : undefined,
+  db_uri: process.env.DB_URI || "mongodb://localhost:27017/web-cms",
+});
 
-const validate = envValidator.safeParse(env);
-
-if (validate.error) {
-  logger.error(validate.error.message, validate.error);
+if (!parsedEnv.success) {
+  logger.error(
+    "-Invalid environment variables:\n",
+    parsedEnv.error.errors.map((error) => error.message)
+      .join("\n")
+  );
   process.exit(1);
 }
+
+export const env = parsedEnv.data;
