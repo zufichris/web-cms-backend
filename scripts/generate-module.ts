@@ -1,4 +1,4 @@
-import { formatStringToCamelCase } from '@/utils/format';
+import { formatStringToCamelCase } from '@app/utils/format';
 import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
@@ -6,57 +6,123 @@ import { promisify } from 'util';
 const mkdir = promisify(fs.mkdir);
 const writeFile = promisify(fs.writeFile);
 
-// Define name format utilities
+/**
+ * Generates consistent name formats for a module
+ */
 function getNameFormats(name: string) {
-    const baseNameForCasing = name.split("-").join(" ");
+    const baseNameForCasing = name.replace(/-/g, ' ');
     const camelCaseName = formatStringToCamelCase(baseNameForCasing);
+    const pascalCaseName = camelCaseName.charAt(0).toUpperCase() + camelCaseName.slice(1);
+    
     return {
         camelCaseName,
-        pascalCaseName: camelCaseName.charAt(0).toUpperCase() + camelCaseName.slice(1),
-        kebabCaseName: name.toLowerCase(),
-        upperCaseName: name.toUpperCase()
+        pascalCaseName,
+        kebabCaseName: name.toLowerCase().replace(/\s+/g, '-'),
+        upperCaseName: name.toUpperCase().replace(/\s+/g, '_')
     };
 }
 
-// Generate templates based on module name
+/**
+ * Generate template content based on module name and component type
+ */
 function generateTemplate(name: string, type: string) {
     const nameFormats = getNameFormats(name);
     const { pascalCaseName, camelCaseName } = nameFormats;
 
     const templates: Record<string, string> = {
-        "useCase": `import { BaseUseCase, ResponseData, TContext, TInput } from '@/shared';
-import { Create${pascalCaseName}Dto } from '../../../data/dtos';
-import { ${pascalCaseName} } from '../../../data/entities';
-import { I${pascalCaseName}Repository } from '../../repository';
+        // Base use case template that can be extended for specific use cases
+        "baseUseCase": `import { IBaseUseCase, ResponseData, TContext } from '@app/shared';
+import { ${pascalCaseName} } from '../../../data/entities/${camelCaseName}.entity';
+import { I${pascalCaseName}Repository } from '../../repository/${camelCaseName}.repository';
 
-export class Create${pascalCaseName}UseCase implements BaseUseCase<Create${pascalCaseName}Dto, ${pascalCaseName}> {
-    constructor(private readonly ${camelCaseName}Repository: I${pascalCaseName}Repository) { }
+export abstract class Base${pascalCaseName}UseCase<TInput, TOutput> implements IBaseUseCase<TInput, TOutput> {
+    constructor(protected readonly ${camelCaseName}Repository: I${pascalCaseName}Repository) {}
 
-    beforeExecute(input?: Create${pascalCaseName}Dto, context?: TContext): Promise<void> {
-        // Perform any pre-execution logic here
+    beforeExecute(input?: TInput, context?: TContext): Promise<void> {
         return Promise.resolve();
     }
     
-    execute(input: Create${pascalCaseName}Dto): Promise<ResponseData<${pascalCaseName}>> {
-        // Perform the main logic of creating a ${camelCaseName}
-        return this.${camelCaseName}Repository.create(input);
-    }
+    abstract execute(input: TInput): Promise<ResponseData<TOutput>>;
     
     afterExecute(input?: TInput, context?: TContext): Promise<void> {
-        // Perform any post-execution logic here
         return Promise.resolve();
     }
 }`,
 
-        "repository": `import { ${pascalCaseName} } from "../../data/entities";
-import { IBaseRepository } from "@/shared";
+        "createUseCase": `import { ResponseData, TContext } from '@app/shared';
+import { Create${pascalCaseName}Dto } from '../../../data/dtos/${camelCaseName}.dto';
+import { ${pascalCaseName} } from '../../../data/entities/${camelCaseName}.entity';
+import { Base${pascalCaseName}UseCase } from './base-${camelCaseName}.use-case';
 
-export interface I${pascalCaseName}Repository extends IBaseRepository<${pascalCaseName}> {
-    // Other methods specific to ${camelCaseName} repository can be added here
+export class Create${pascalCaseName}UseCase extends Base${pascalCaseName}UseCase<Create${pascalCaseName}Dto, ${pascalCaseName}> {
+    async beforeExecute(input?: Create${pascalCaseName}Dto, context?: TContext): Promise<void> {
+        // Validate input or check permissions
+        return Promise.resolve();
+    }
+    
+    async execute(input: Create${pascalCaseName}Dto): Promise<ResponseData<${pascalCaseName}>> {
+        return this.${camelCaseName}Repository.create(input);
+    }
 }`,
 
-        "controller": `import { Create${pascalCaseName}UseCase, Get${pascalCaseName}UseCase, Update${pascalCaseName}UseCase, Delete${pascalCaseName}UseCase, Query${pascalCaseName}UseCase } from "../../domain/use-cases";
-import { Request, Response } from "express";
+        "updateUseCase": `import { ResponseData } from '@app/shared';
+import { Update${pascalCaseName}Dto } from '../../../data/dtos/${camelCaseName}.dto';
+import { ${pascalCaseName} } from '../../../data/entities/${camelCaseName}.entity';
+import { Base${pascalCaseName}UseCase } from './base-${camelCaseName}.use-case';
+
+export class Update${pascalCaseName}UseCase extends Base${pascalCaseName}UseCase<Update${pascalCaseName}Dto, ${pascalCaseName}> {
+    async execute(input: Update${pascalCaseName}Dto): Promise<ResponseData<${pascalCaseName}>> {
+        const { id, ...updateData } = input;
+        return this.${camelCaseName}Repository.update(id, updateData);
+    }
+}`,
+
+        "getUseCase": `import { ResponseData } from '@app/shared';
+import { ${pascalCaseName} } from '../../../data/entities/${camelCaseName}.entity';
+import { Base${pascalCaseName}UseCase } from './base-${camelCaseName}.use-case';
+
+export class Get${pascalCaseName}UseCase extends Base${pascalCaseName}UseCase<string, ${pascalCaseName}> {
+    async execute(id: string): Promise<ResponseData<${pascalCaseName}>> {
+        return this.${camelCaseName}Repository.findById(id);
+    }
+}`,
+
+        "deleteUseCase": `import { ResponseData } from '@app/shared';
+import { Base${pascalCaseName}UseCase } from './base-${camelCaseName}.use-case';
+
+export class Delete${pascalCaseName}UseCase extends Base${pascalCaseName}UseCase<string, boolean> {
+    async execute(id: string): Promise<ResponseData<boolean>> {
+        return this.${camelCaseName}Repository.delete(id);
+    }
+}`,
+
+        "queryUseCase": `import { ResponseData } from '@app/shared';
+import { Query${pascalCaseName}Dto } from '../../../data/dtos/${camelCaseName}.dto';
+import { ${pascalCaseName} } from '../../../data/entities/${camelCaseName}.entity';
+import { Base${pascalCaseName}UseCase } from './base-${camelCaseName}.use-case';
+
+export class Query${pascalCaseName}UseCase extends Base${pascalCaseName}UseCase<Query${pascalCaseName}Dto, ${pascalCaseName}[]> {
+    async execute(query: Query${pascalCaseName}Dto): Promise<ResponseData<${pascalCaseName}[]>> {
+        return this.${camelCaseName}Repository.findAll(query);
+    }
+}`,
+
+        "repository": `import { IBaseRepository } from "@app/shared";
+import { ${pascalCaseName} } from "../../data/entities/${camelCaseName}.entity";
+
+export interface I${pascalCaseName}Repository extends IBaseRepository<${pascalCaseName}> {
+    // Add any ${camelCaseName}-specific repository methods here
+}`,
+
+        "controller": `import { 
+    Create${pascalCaseName}UseCase,
+    Get${pascalCaseName}UseCase,
+    Update${pascalCaseName}UseCase,
+    Delete${pascalCaseName}UseCase,
+    Query${pascalCaseName}UseCase
+} from "../../domain/use-cases";
+import { Request, Response, NextFunction } from "express";
+import { ApiHandler } from "@app/shared";
 
 export class ${pascalCaseName}Controller {
     constructor(
@@ -65,96 +131,100 @@ export class ${pascalCaseName}Controller {
         private readonly update${pascalCaseName}UseCase: Update${pascalCaseName}UseCase,
         private readonly delete${pascalCaseName}UseCase: Delete${pascalCaseName}UseCase,
         private readonly query${pascalCaseName}UseCase: Query${pascalCaseName}UseCase
-    ) { }
+    ) {}
     
-    async create(req: Request, res: Response) {
-        try {
-            const result = await this.create${pascalCaseName}UseCase.execute(req.body);
-            return res.status(201).json(result);
-        } catch (error) {
-            return res.status(500).json({ error: error.message });
-        }
-    }
+    create = ApiHandler(async (req: Request, res: Response) => {
+        const result = await this.create${pascalCaseName}UseCase.execute(req.body);
+        return res.status(201).json(result);
+    });
     
-    async getById(req: Request, res: Response) {
-        try {
-            const result = await this.get${pascalCaseName}UseCase.execute(req.params.id);
-            return res.status(200).json(result);
-        } catch (error) {
-            return res.status(500).json({ error: error.message });
-        }
-    }
+    getById = ApiHandler(async (req: Request, res: Response) => {
+        const result = await this.get${pascalCaseName}UseCase.execute(req.params.id);
+        return res.status(200).json(result);
+    });
     
-    async update(req: Request, res: Response) {
-        try {
-            const result = await this.update${pascalCaseName}UseCase.execute({ id: req.params.id, ...req.body });
-            return res.status(200).json(result);
-        } catch (error) {
-            return res.status(500).json({ error: error.message });
-        }
-    }
+    update = ApiHandler(async (req: Request, res: Response) => {
+        const result = await this.update${pascalCaseName}UseCase.execute({ 
+            id: req.params.id, 
+            ...req.body 
+        });
+        return res.status(200).json(result);
+    });
     
-    async delete(req: Request, res: Response) {
-        try {
-            const result = await this.delete${pascalCaseName}UseCase.execute(req.params.id);
-            return res.status(200).json(result);
-        } catch (error) {
-            return res.status(500).json({ error: error.message });
-        }
-    }
+    delete = ApiHandler(async (req: Request, res: Response) => {
+        const result = await this.delete${pascalCaseName}UseCase.execute(req.params.id);
+        return res.status(200).json(result);
+    });
     
-    async getAll(req: Request, res: Response) {
-        try {
-            const result = await this.query${pascalCaseName}UseCase.execute(req.query);
-            return res.status(200).json(result);
-        } catch (error) {
-            return res.status(500).json({ error: error.message });
-        }
-    }
+    getAll = ApiHandler(async (req: Request, res: Response) => {
+        const result = await this.query${pascalCaseName}UseCase.execute(req.query);
+        return res.status(200).json(result);
+    });
 }`,
 
-        "route": `import express from 'express';
-import { ${camelCaseName}Controller } from '../controllers';
+        "route": `import { Router } from 'express';
+import { ${pascalCaseName}Controller } from '../controllers/${camelCaseName}.controller';
+import { validateRequest } from '@app/middleware';
+import { Create${pascalCaseName}Schema, Update${pascalCaseName}Schema } from '../../data/dtos/${camelCaseName}.dto';
 
-const router = express.Router();
-
-router.route("/")
-    .get(${camelCaseName}Controller.getAll.bind(${camelCaseName}Controller))
-    .post(${camelCaseName}Controller.create.bind(${camelCaseName}Controller));
+export function create${pascalCaseName}Router(controller: ${pascalCaseName}Controller): Router {
+    const router = Router();
     
-router.route("/:id")
-    .get(${camelCaseName}Controller.getById.bind(${camelCaseName}Controller))
-    .put(${camelCaseName}Controller.update.bind(${camelCaseName}Controller))
-    .delete(${camelCaseName}Controller.delete.bind(${camelCaseName}Controller));
-    
-export const ${camelCaseName}Router = router;`,
+    router.route('/')
+        .get(controller.getAll)
+        .post(validateRequest(Create${pascalCaseName}Schema), controller.create);
+        
+    router.route('/:id')
+        .get(controller.getById)
+        .put(validateRequest(Update${pascalCaseName}Schema), controller.update)
+        .delete(controller.delete);
+        
+    return router;
+}`,
 
         "entity": `import { z } from "zod";
+import { BaseEntitySchema } from "@app/shared";
 
-export const ${pascalCaseName}Schema = z.object({
-    id: z.string(),
-    createdAt: z.date(),
-    updatedAt: z.date(),
-    // Add other fields specific to ${camelCaseName}
+/**
+ * Schema definition for ${pascalCaseName} entity
+ */
+export const ${pascalCaseName}Schema = BaseEntitySchema.extend({
+    // TODO: Add ${camelCaseName}-specific fields here
+    name: z.string().min(1),
+    description: z.string().optional(),
+    // Add more fields as needed
 });
 
 export type ${pascalCaseName} = z.infer<typeof ${pascalCaseName}Schema>;`,
 
         "dto": `import { z } from "zod";
+import { PaginationQuerySchema } from "@app/shared";
 
+/**
+ * Schema for creating a new ${pascalCaseName}
+ */
 export const Create${pascalCaseName}Schema = z.object({
-    // Define properties required for creating a ${camelCaseName}
+    name: z.string().min(1),
+    description: z.string().optional(),
+    // TODO: Add more fields as needed
 });
 
+/**
+ * Schema for updating an existing ${pascalCaseName}
+ */
 export const Update${pascalCaseName}Schema = z.object({
-    id: z.string(),
-    // Define properties that can be updated for a ${camelCaseName}
+    id: z.string().uuid(),
+    name: z.string().min(1).optional(),
+    description: z.string().optional(),
+    // TODO: Add more fields as needed
 });
 
-export const Query${pascalCaseName}Schema = z.object({
-    // Define properties for querying ${camelCaseName}s
-    page: z.number().optional(),
-    limit: z.number().optional(),
+/**
+ * Schema for querying ${pascalCaseName} entities
+ */
+export const Query${pascalCaseName}Schema = PaginationQuerySchema.extend({
+    name: z.string().optional(),
+    // TODO: Add more query fields as needed
 });
 
 export type Create${pascalCaseName}Dto = z.infer<typeof Create${pascalCaseName}Schema>;
@@ -162,288 +232,453 @@ export type Update${pascalCaseName}Dto = z.infer<typeof Update${pascalCaseName}S
 export type Query${pascalCaseName}Dto = z.infer<typeof Query${pascalCaseName}Schema>;`,
 
         "repositoryImpl": `import mongoose from "mongoose";
-import { I${pascalCaseName}Repository } from "../../../domain/repository";
-import { ${pascalCaseName}Document, ${pascalCaseName}Model } from "../models";
-import { ${pascalCaseName} } from "../../entities";
-import { Create${pascalCaseName}Dto, Update${pascalCaseName}Dto, Query${pascalCaseName}Dto } from "../../dtos";
-import { ResponseData } from "@/shared";
+import { I${pascalCaseName}Repository } from "../../../domain/repository/${camelCaseName}.repository";
+import { ${pascalCaseName}Document, ${pascalCaseName}Model } from "../models/${camelCaseName}.model";
+import { ${pascalCaseName} } from "../../entities/${camelCaseName}.entity";
+import { 
+    Create${pascalCaseName}Dto, 
+    Update${pascalCaseName}Dto, 
+    Query${pascalCaseName}Dto 
+} from "../../dtos/${camelCaseName}.dto";
+import { ResponseData } from "@app/shared";
 
 export class ${pascalCaseName}RepositoryImpl implements I${pascalCaseName}Repository {
-    constructor() {}
+    constructor(
+        private readonly model = ${pascalCaseName}Model
+    ) {}
     
     async create(data: Create${pascalCaseName}Dto): Promise<ResponseData<${pascalCaseName}>> {
-        const created = await ${pascalCaseName}Model.create(data);
-        return { data: created.toObject(), success: true };
+        try {
+            const created = await this.model.create(data);
+            return { 
+                data: created.toObject(), 
+                success: true 
+            };
+        } catch (error) {
+            return { 
+                success: false, 
+                error: \`Failed to create ${camelCaseName}: \${error.message}\` 
+            };
+        }
     }
     
     async findById(id: string): Promise<ResponseData<${pascalCaseName}>> {
-        const item = await ${pascalCaseName}Model.findById(id);
-        if (!item) {
-            return { success: false, error: "${pascalCaseName} not found" };
+        try {
+            const item = await this.model.findById(id);
+            if (!item) {
+                return { 
+                    success: false, 
+                    error: \`${pascalCaseName} not found with id: \${id}\` 
+                };
+            }
+            return { 
+                data: item.toObject(), 
+                success: true 
+            };
+        } catch (error) {
+            return { 
+                success: false, 
+                error: \`Failed to find ${camelCaseName}: \${error.message}\` 
+            };
         }
-        return { data: item.toObject(), success: true };
     }
     
-    async update(id: string, data: Update${pascalCaseName}Dto): Promise<ResponseData<${pascalCaseName}>> {
-        const updated = await ${pascalCaseName}Model.findByIdAndUpdate(id, data, { new: true });
-        if (!updated) {
-            return { success: false, error: "${pascalCaseName} not found" };
+    async update(id: string, data: Partial<Update${pascalCaseName}Dto>): Promise<ResponseData<${pascalCaseName}>> {
+        try {
+            const updated = await this.model.findByIdAndUpdate(
+                id, 
+                { $set: data }, 
+                { new: true, runValidators: true }
+            );
+            
+            if (!updated) {
+                return { 
+                    success: false, 
+                    error: \`${pascalCaseName} not found with id: \${id}\` 
+                };
+            }
+            
+            return { 
+                data: updated.toObject(), 
+                success: true 
+            };
+        } catch (error) {
+            return { 
+                success: false, 
+                error: \`Failed to update ${camelCaseName}: \${error.message}\` 
+            };
         }
-        return { data: updated.toObject(), success: true };
     }
     
     async delete(id: string): Promise<ResponseData<boolean>> {
-        const result = await ${pascalCaseName}Model.findByIdAndDelete(id);
-        if (!result) {
-            return { success: false, error: "${pascalCaseName} not found" };
+        try {
+            const result = await this.model.findByIdAndDelete(id);
+            if (!result) {
+                return { 
+                    success: false, 
+                    error: \`${pascalCaseName} not found with id: \${id}\` 
+                };
+            }
+            return { 
+                data: true, 
+                success: true 
+            };
+        } catch (error) {
+            return { 
+                success: false, 
+                error: \`Failed to delete ${camelCaseName}: \${error.message}\` 
+            };
         }
-        return { data: true, success: true };
     }
     
     async findAll(query: Query${pascalCaseName}Dto): Promise<ResponseData<${pascalCaseName}[]>> {
-        const { page = 1, limit = 10, ...filters } = query;
-        const skip = (page - 1) * limit;
+        try {
+            const { page = 1, limit = 10, sort = 'createdAt', order = 'desc', ...filters } = query;
+            const skip = (Number(page) - 1) * Number(limit);
+            
+            // Build the filter object from the provided filters
+            const filterObject = this.buildFilterObject(filters);
+            
+            // Execute the query with pagination
+            const items = await this.model.find(filterObject)
+                .sort({ [sort]: order === 'desc' ? -1 : 1 })
+                .skip(skip)
+                .limit(Number(limit))
+                .exec();
+                
+            const total = await this.model.countDocuments(filterObject);
+            
+            return { 
+                data: items.map(item => item.toObject()), 
+                success: true,
+                meta: {
+                    total,
+                    page: Number(page),
+                    limit: Number(limit),
+                    pages: Math.ceil(total / Number(limit))
+                }
+            };
+        } catch (error) {
+            return { 
+                success: false, 
+                error: \`Failed to find ${camelCaseName}s: \${error.message}\` 
+            };
+        }
+    }
+    
+    /**
+     * Builds a MongoDB filter object from the provided query parameters
+     */
+    private buildFilterObject(filters: Record<string, any>): Record<string, any> {
+        const filterObject: Record<string, any> = {};
         
-        const items = await ${pascalCaseName}Model.find(filters).skip(skip).limit(limit);
-        const total = await ${pascalCaseName}Model.countDocuments(filters);
-        
-        return { 
-            data: items.map(item => item.toObject()), 
-            success: true,
-            meta: {
-                total,
-                page,
-                limit,
-                pages: Math.ceil(total / limit)
+        // Process each filter and convert to appropriate MongoDB query operator
+        Object.entries(filters).forEach(([key, value]) => {
+            if (value !== undefined && value !== null && value !== '') {
+                if (typeof value === 'string' && !['true', 'false'].includes(value.toLowerCase())) {
+                    // Text search with case insensitivity
+                    filterObject[key] = { $regex: value, $options: 'i' };
+                } else {
+                    // Direct equality comparison
+                    filterObject[key] = value;
+                }
             }
-        };
+        });
+        
+        return filterObject;
     }
 }`,
 
-        "model": `import mongoose from "mongoose";
-import { ${pascalCaseName} } from "../../entities";
+        "model": `import mongoose, { Schema } from "mongoose";
+import { ${pascalCaseName} } from "../../entities/${camelCaseName}.entity";
 
+/**
+ * Mongoose document type for ${pascalCaseName}
+ */
 export type ${pascalCaseName}Document = mongoose.Document & ${pascalCaseName};
 
-const schema = new mongoose.Schema<${pascalCaseName}Document>({
-    // Define schema fields matching the ${pascalCaseName} entity
+/**
+ * Mongoose schema for ${pascalCaseName}
+ */
+const ${camelCaseName}Schema = new Schema<${pascalCaseName}Document>({
+    name: { 
+        type: String, 
+        required: true 
+    },
+    description: { 
+        type: String 
+    },
+    // TODO: Add more fields matching the ${pascalCaseName} entity
 }, {
-    timestamps: true
+    timestamps: true,
+    toObject: {
+        transform: (_, ret) => {
+            ret.id = ret._id;
+            delete ret._id;
+            delete ret.__v;
+            return ret;
+        }
+    }
 });
 
-export const ${pascalCaseName}Model: mongoose.Model<${pascalCaseName}Document> = 
-    mongoose.models.${pascalCaseName} || 
-    mongoose.model<${pascalCaseName}Document>("${pascalCaseName}", schema);`
+/**
+ * Mongoose model for ${pascalCaseName}
+ */
+export const ${pascalCaseName}Model = mongoose.models.${pascalCaseName} || 
+    mongoose.model<${pascalCaseName}Document>("${pascalCaseName}", ${camelCaseName}Schema);`
     };
 
     return templates[type] || `// Template for ${type} not found`;
 }
 
-async function generateUseCaseFiles(modulePath: string, moduleName: string) {
-    const useCases = ["create", "update", "delete", "get", "query"];
-    const nameFormats = getNameFormats(moduleName);
-
-    for (const useCase of useCases) {
-        const capitalizedUseCase = useCase.charAt(0).toUpperCase() + useCase.slice(1);
-        const fileName = `${capitalizedUseCase}${nameFormats.pascalCaseName}UseCase.ts`;
-        const useCasePath = path.join(modulePath, 'domain', 'use-cases', useCase);
-
-        // Generate specific template for each use case type
-        let template = generateTemplate(moduleName, "useCase")
-            .replace(/Create/g, capitalizedUseCase);
-
-        if (useCase !== "create") {
-            // Modify template for specific use case types
-            template = template.replace(/create/g, useCase);
-        }
-
-        await writeFile(path.join(useCasePath, fileName), template, 'utf-8');
-    }
-
-    // Create index files to export all use cases
-    const indexContent = useCases
-        .map(useCase => {
-            const capitalizedUseCase = useCase.charAt(0).toUpperCase() + useCase.slice(1);
-            return `export * from './${useCase}/${capitalizedUseCase}${nameFormats.pascalCaseName}UseCase';`;
-        })
-        .join('\n');
-
-    await writeFile(path.join(modulePath, 'domain', 'use-cases', 'index.ts'), indexContent, 'utf-8');
+/**
+ * Creates a file with the given content
+ */
+async function createFile(filePath: string, content: string): Promise<void> {
+    const dir = path.dirname(filePath);
+    await mkdir(dir, { recursive: true });
+    await writeFile(filePath, content, 'utf-8');
 }
 
-async function generateModule(moduleName: string) {
-    const modulePath = path.join(__dirname, '..', 'modules', moduleName.split(" ").join("-"));
-
-    const paths = [
-        {
-            name: "data",
-            subPaths: [
-                { name: "entities" },
-                { name: "dtos" },
-                {
-                    name: "orm",
-                    subPaths: [
-                        { name: "repository-impl" },
-                        { name: "models" }
-                    ]
-                }
-            ]
-        },
-        {
-            name: "domain",
-            subPaths: [
-                { name: "repository" },
-                {
-                    name: "use-cases",
-                    subPaths: [
-                        { name: "create" },
-                        { name: "update" },
-                        { name: "delete" },
-                        { name: "get" },
-                        { name: "query" }
-                    ]
-                }
-            ]
-        },
-        {
-            name: "http",
-            subPaths: [
-                { name: "controllers" },
-                { name: "routes" }  // Moved routes to http folder
-            ]
-        }
+/**
+ * Generates use case files for a module
+ */
+async function generateUseCaseFiles(modulePath: string, moduleName: string): Promise<void> {
+    const nameFormats = getNameFormats(moduleName);
+    const { camelCaseName } = nameFormats;
+    
+    // Create base use case file first
+    await createFile(
+        path.join(modulePath, 'domain', 'use-cases', `base-${camelCaseName}.use-case.ts`),
+        generateTemplate(moduleName, "baseUseCase")
+    );
+    
+    // Generate specific use case types
+    const useCaseTypes = [
+        { name: "create", template: "createUseCase" },
+        { name: "update", template: "updateUseCase" },
+        { name: "delete", template: "deleteUseCase" },
+        { name: "get", template: "getUseCase" },
+        { name: "query", template: "queryUseCase" }
     ];
 
-    //eslint-disable-next-line
-    function buildDirectoryList(parentDir: string, paths: any[]): string[] {
-        let dirs: string[] = [];
-        for (const p of paths) {
-            const currentDir = path.join(parentDir, p.name);
-            dirs.push(currentDir);
-            if (p.subPaths) {
-                dirs = dirs.concat(buildDirectoryList(currentDir, p.subPaths));
-            }
-        }
-        return dirs;
+    // Create each use case file
+    for (const useCase of useCaseTypes) {
+        await createFile(
+            path.join(modulePath, 'domain', 'use-cases', `${useCase.name}-${camelCaseName}.use-case.ts`),
+            generateTemplate(moduleName, useCase.template)
+        );
     }
 
-    const directories = buildDirectoryList(modulePath, paths);
+    // Create index file that exports all use cases
+    const indexContent = `// Export all use cases
+export * from './base-${camelCaseName}.use-case';
+export * from './create-${camelCaseName}.use-case';
+export * from './update-${camelCaseName}.use-case';
+export * from './delete-${camelCaseName}.use-case';
+export * from './get-${camelCaseName}.use-case';
+export * from './query-${camelCaseName}.use-case';
+`;
 
-    // Create directories
+    await createFile(
+        path.join(modulePath, 'domain', 'use-cases', 'index.ts'),
+        indexContent
+    );
+}
+
+/**
+ * Main function to generate a complete module structure
+ */
+async function generateModule(moduleName: string): Promise<void> {
+    const nameFormats = getNameFormats(moduleName);
+    const { camelCaseName } = nameFormats;
+    
+    const modulePath = path.join(__dirname, '../src', 'modules', nameFormats.kebabCaseName);
+
+    // Define directory structure
+    const directories = [
+        // Data layer
+        path.join(modulePath, 'data', 'entities'),
+        path.join(modulePath, 'data', 'dtos'),
+        path.join(modulePath, 'data', 'orm', 'models'),
+        path.join(modulePath, 'data', 'orm', 'repository-impl'),
+        
+        // Domain layer
+        path.join(modulePath, 'domain', 'repository'),
+        path.join(modulePath, 'domain', 'use-cases'),
+        
+        // HTTP layer
+        path.join(modulePath, 'http', 'controllers'),
+        path.join(modulePath, 'http', 'routes'),
+    ];
+
+    // Create all directories
     for (const dir of directories) {
         await mkdir(dir, { recursive: true });
     }
 
-    // Generate entity file
-    await writeFile(
-        path.join(modulePath, 'data', 'entities', `${moduleName}.entity.ts`),
-        generateTemplate(moduleName, "entity"),
-        'utf-8'
-    );
-    await writeFile(
-        path.join(modulePath, 'data', 'entities', 'index.ts'),
-        `export * from './${moduleName}.entity';`,
-        'utf-8'
-    );
+    // Generate core files
+    const files = [
+        {
+            path: path.join(modulePath, 'data', 'entities', `${camelCaseName}.entity.ts`),
+            template: "entity"
+        },
+        {
+            path: path.join(modulePath, 'data', 'dtos', `${camelCaseName}.dto.ts`),
+            template: "dto"
+        },
+        {
+            path: path.join(modulePath, 'domain', 'repository', `${camelCaseName}.repository.ts`),
+            template: "repository"
+        },
+        {
+            path: path.join(modulePath, 'data', 'orm', 'models', `${camelCaseName}.model.ts`),
+            template: "model"
+        },
+        {
+            path: path.join(modulePath, 'data', 'orm', 'repository-impl', `${camelCaseName}.repository-impl.ts`),
+            template: "repositoryImpl"
+        },
+        {
+            path: path.join(modulePath, 'http', 'controllers', `${camelCaseName}.controller.ts`),
+            template: "controller"
+        },
+        {
+            path: path.join(modulePath, 'http', 'routes', `${camelCaseName}.routes.ts`),
+            template: "route"
+        }
+    ];
 
-    // Generate DTO file
-    await writeFile(
-        path.join(modulePath, 'data', 'dtos', `${moduleName}.dto.ts`),
-        generateTemplate(moduleName, "dto"),
-        'utf-8'
-    );
-    await writeFile(
-        path.join(modulePath, 'data', 'dtos', 'index.ts'),
-        `export * from './${moduleName}.dto';`,
-        'utf-8'
-    );
-
-    // Generate repository interface
-    await writeFile(
-        path.join(modulePath, 'domain', 'repository', `${moduleName}.repository.ts`),
-        generateTemplate(moduleName, "repository"),
-        'utf-8'
-    );
-    await writeFile(
-        path.join(modulePath, 'domain', 'repository', 'index.ts'),
-        `export * from './${moduleName}.repository';`,
-        'utf-8'
-    );
-
-    // Generate model file
-    await writeFile(
-        path.join(modulePath, 'data', 'orm', 'models', `${moduleName}.model.ts`),
-        generateTemplate(moduleName, "model"),
-        'utf-8'
-    );
-    await writeFile(
-        path.join(modulePath, 'data', 'orm', 'models', 'index.ts'),
-        `export * from './${moduleName}.model';`,
-        'utf-8'
-    );
-
-    // Generate repository implementation
-    await writeFile(
-        path.join(modulePath, 'data', 'orm', 'repository-impl', `${moduleName}.repository-impl.ts`),
-        generateTemplate(moduleName, "repositoryImpl"),
-        'utf-8'
-    );
-    await writeFile(
-        path.join(modulePath, 'data', 'orm', 'repository-impl', 'index.ts'),
-        `export * from './${moduleName}.repository-impl';`,
-        'utf-8'
-    );
-
-    // Generate controller file
-    await writeFile(
-        path.join(modulePath, 'http', 'controllers', `${moduleName}.controller.ts`),
-        generateTemplate(moduleName, "controller"),
-        'utf-8'
-    );
-    await writeFile(
-        path.join(modulePath, 'http', 'controllers', 'index.ts'),
-        `export * from './${moduleName}.controller';`,
-        'utf-8'
-    );
-
-    // Generate routes file (now in http/routes folder)
-    await writeFile(
-        path.join(modulePath, 'http', 'routes', `${moduleName}.routes.ts`),
-        generateTemplate(moduleName, "route"),
-        'utf-8'
-    );
-    await writeFile(
-        path.join(modulePath, 'http', 'routes', 'index.ts'),
-        `export * from './${moduleName}.routes';`,
-        'utf-8'
-    );
-
-    // Generate use case files for each type (create, update, delete, get, query)
-    await generateUseCaseFiles(modulePath, moduleName);
-
-    // Generate module index file that exports everything
-    const moduleIndexContent = `// Main module exports for ${moduleName}
-export * from './data/entities';
-export * from './data/dtos';
-export * from './domain/repository';
-export * from './domain/use-cases';
-export * from './http/controllers';
-export * from './http/routes';
-`;
-
-    await writeFile(path.join(modulePath, 'index.ts'), moduleIndexContent, 'utf-8');
-
-    console.log(`Module "${moduleName}" generated successfully in ${modulePath}`);
-}
-
-async function main() {
-    if (process.argv.length < 3) {
-        console.error('Please provide a module name.');
-        process.exit(1);
+    // Create all files
+    for (const file of files) {
+        await createFile(file.path, generateTemplate(moduleName, file.template));
     }
 
-    const moduleName = process.argv[2];
-    await generateModule(moduleName);
+    // Create index files for each directory
+    await createIndexFiles(modulePath, camelCaseName);
+
+    // Generate use case files
+    await generateUseCaseFiles(modulePath, moduleName);
+
+    // Generate the main module index file
+    await createFile(
+        path.join(modulePath, 'index.ts'),
+        `/**
+ * ${nameFormats.pascalCaseName} Module
+ */
+export * from './data/entities/${camelCaseName}.entity';
+export * from './data/dtos/${camelCaseName}.dto';
+export * from './domain/repository/${camelCaseName}.repository';
+export * from './domain/use-cases';
+export * from './http/controllers/${camelCaseName}.controller';
+export * from './http/routes/${camelCaseName}.routes';
+
+// Module initialization
+import { ${nameFormats.pascalCaseName}Model } from './data/orm/models/${camelCaseName}.model';
+import { ${nameFormats.pascalCaseName}RepositoryImpl } from './data/orm/repository-impl/${camelCaseName}.repository-impl';
+import { 
+    Create${nameFormats.pascalCaseName}UseCase,
+    Get${nameFormats.pascalCaseName}UseCase,
+    Update${nameFormats.pascalCaseName}UseCase,
+    Delete${nameFormats.pascalCaseName}UseCase,
+    Query${nameFormats.pascalCaseName}UseCase
+} from './domain/use-cases';
+import { ${nameFormats.pascalCaseName}Controller } from './http/controllers/${camelCaseName}.controller';
+import { create${nameFormats.pascalCaseName}Router } from './http/routes/${camelCaseName}.routes';
+import { Router } from 'express';
+
+/**
+ * Initialize the ${nameFormats.pascalCaseName} module and return its router
+ */
+export function init${nameFormats.pascalCaseName}Module(): Router {
+    // Create repository implementation
+    const repository = new ${nameFormats.pascalCaseName}RepositoryImpl(${nameFormats.pascalCaseName}Model);
+    
+    // Create use cases
+    const createUseCase = new Create${nameFormats.pascalCaseName}UseCase(repository);
+    const getUseCase = new Get${nameFormats.pascalCaseName}UseCase(repository);
+    const updateUseCase = new Update${nameFormats.pascalCaseName}UseCase(repository);
+    const deleteUseCase = new Delete${nameFormats.pascalCaseName}UseCase(repository);
+    const queryUseCase = new Query${nameFormats.pascalCaseName}UseCase(repository);
+    
+    // Create controller
+    const controller = new ${nameFormats.pascalCaseName}Controller(
+        createUseCase,
+        getUseCase,
+        updateUseCase,
+        deleteUseCase,
+        queryUseCase
+    );
+    
+    // Create and return router
+    return create${nameFormats.pascalCaseName}Router(controller);
+}
+`
+    );
+
+    console.log(`✅ Module "${moduleName}" generated successfully in ${modulePath}`);
 }
 
-main().catch(console.error);
+/**
+ * Create index files for each directory to properly export components
+ */
+async function createIndexFiles(modulePath: string, camelCaseName: string): Promise<void> {
+    const indexFiles = [
+        {
+            path: path.join(modulePath, 'data', 'entities', 'index.ts'),
+            content: `export * from './${camelCaseName}.entity';`
+        },
+        {
+            path: path.join(modulePath, 'data', 'dtos', 'index.ts'),
+            content: `export * from './${camelCaseName}.dto';`
+        },
+        {
+            path: path.join(modulePath, 'domain', 'repository', 'index.ts'),
+            content: `export * from './${camelCaseName}.repository';`
+        },
+        {
+            path: path.join(modulePath, 'data', 'orm', 'models', 'index.ts'),
+            content: `export * from './${camelCaseName}.model';`
+        },
+        {
+            path: path.join(modulePath, 'data', 'orm', 'repository-impl', 'index.ts'),
+            content: `export * from './${camelCaseName}.repository-impl';`
+        },
+        {
+            path: path.join(modulePath, 'http', 'controllers', 'index.ts'),
+            content: `export * from './${camelCaseName}.controller';`
+        },
+        {
+            path: path.join(modulePath, 'http', 'routes', 'index.ts'),
+            content: `export * from './${camelCaseName}.routes';`
+        }
+    ];
+
+    for (const file of indexFiles) {
+        await createFile(file.path, file.content);
+    }
+}
+
+/**
+ * CLI entry point
+ */
+async function main() {
+    try {
+        if (process.argv.length < 3) {
+            console.error('❌ Please provide a module name.');
+            console.log('Usage: ts-node generate-module.ts <module-name>');
+            process.exit(1);
+        }
+
+        const moduleName = process.argv[2];
+        await generateModule(moduleName);
+    } catch (error) {
+        console.error('❌ Error generating module:', error);
+        process.exit(1);
+    }
+}
+
+// Run the script
+if (require.main === module) {
+    main().catch(console.error);
+}

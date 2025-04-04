@@ -6,7 +6,7 @@
     "lib": ["es2022"],
     "declaration": true,
     "outDir": "./build",
-    "rootDir": "./",
+    "rootDir": ".",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -15,12 +15,9 @@
     "sourceMap": true,
     "baseUrl": "./",
     "paths": {
-      "@/*": ["src/*"],
-      "@config/*": ["src/config/*"],
-      "@middleware/*": ["src/middleware/*"],
-      "@modules/*": ["src/modules/*"],
-      "@shared/*": ["src/shared/*"],
-      "@utils/*": ["src/utils/*"]
+      "@app/*": ["src/*"],
+      "@tests/*": ["__tests__/*"],
+      "@scripts/*": ["scripts/*"]
     }
   },
   "ts-node": {

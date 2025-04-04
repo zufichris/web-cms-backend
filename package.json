@@ -2,7 +2,7 @@
     "name": "web-content-manager-backend",
     "version": "1.0.0",
     "description": "Manage website content dynamically",
-    "main": "index.ts",
+    "main": "src/index.ts",
     "scripts": {
         "build": "tsx scripts/build.ts",
         "start": "tsx scripts/build.ts && node build/src/index.js",
