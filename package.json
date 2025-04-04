@@ -4,13 +4,14 @@
     "description": "Manage website content dynamically",
     "main": "index.ts",
     "scripts": {
-        "build": "npx tsx scripts/build.ts",
-        "test": "npx tsx scripts/run-tests.ts",
-        "lint": "npx tsx scripts/lint.ts",
-        "start": "npx tsx scripts/build.ts && node build/src/index.js",
+        "build": "tsx scripts/build.ts",
+        "start": "tsx scripts/build.ts && node build/src/index.js",
         "dev": "nodemon --exec 'tsx' src/index.ts",
-        "format": "npx tsx scripts/format.ts",
-        "cleanup": "npx tsx scripts/cleanup.ts",
+        "seed": "tsx scripts/seed.ts",
+        "test": "tsx scripts/run-tests.ts",
+        "lint": "tsx scripts/lint.ts",
+        "format": "tsx scripts/format.ts",
+        "cleanup": "tsx scripts/cleanup.ts",
         "generate:module": "tsx scripts/generate-module.ts"
     },
     "repository": {
@@ -21,7 +22,7 @@
         "web-cms",
         "cms",
         "content-manager",
-        "website-conent",
+        "website-content",
         "content",
         "website",
         "dynamic",
@@ -53,6 +54,7 @@
         "cors": "^2.8.5",
         "dotenv": "^16.4.7",
         "express": "^5.1.0",
+        "mongoose": "^8.13.2",
         "zod": "^3.24.2"
     }
 }
