@@ -1,6 +1,6 @@
 # CMS
 
-# Modules
+# /Modules
 
 This directory contains the individual modules that make up the application's features. Each module is self-contained and follows a consistent structure to ensure maintainability and scalability.
 
