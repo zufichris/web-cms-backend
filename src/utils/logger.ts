@@ -1,6 +1,6 @@
 export const logger = {
   info(info: string, data?: unknown): void {
-    console.info(info, "\t", data ?? "", "\n");
+    console.info("\n", info, "\t", data ?? "", "\n");
   },
   todo(info: string): void {
     console.warn("\nTODO:", info, "\n");

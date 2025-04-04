@@ -22,6 +22,7 @@ class App {
         this.initStaticFiles()
         this.initApiRoutes()
         this.initErrorHandlers()
+        this.initDatabaseConnection()
     }
 
     private initCoreMiddleware(): void {

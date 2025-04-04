@@ -3,7 +3,7 @@ import { Request, Response } from "express"
 import { logger } from "@app/utils"
 
 export const notfoundHandler = ApiHandler((req: Request, res: Response) => {
-    const error = AppError.notFound(`Resource Notfound ${req.url}`);
+    const error = AppError.notFound(`Resource Not Found ${req.url}`);
     logger.error(error.message, error.statusCode)
     const response: ResponseData<undefined> = {
         success: false,
