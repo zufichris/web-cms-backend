@@ -1,19 +1,19 @@
-type TErrorResponse = {
+type ErrorResponse = {
     success: false;
     description?: string
 };
 
-type TSuccessResponse<TData> = {
+type SuccessResponse<TData> = {
     success: true;
     data: TData;
 };
 
-export type TResponseData<TData> = (TErrorResponse | TSuccessResponse<TData>) & {
+export type ResponseData<TData> = (ErrorResponse | SuccessResponse<TData>) & {
     message: string
     status: number
 };
 
-export type ResponseDataPaginated<T> = TResponseData<T[]> & {
+export type ResponseDataPaginated<T> = ResponseData<T[]> & {
     limit: number;
     page: number;
     total: number;
@@ -37,4 +37,11 @@ export interface IBaseUseCase<TInput = unknown, TOutPut = unknown, TContext = vo
     beforeExecute(input?: TInput, context?: TContext): Promise<void>
     execute(input: TInput, context?: TContext): Promise<TOutPut>
     afterExecute(input?: TInput, context?: TContext): Promise<void>
+}
+export interface IBaseRepository<Entity> {
+    create(data: Entity): Promise<Entity>;
+    findOne(filter: Partial<Entity>): Promise<Entity | null>;
+    findMany(filter: Partial<Entity>, options?: QueryFilter<Partial<Entity>>): Promise<Entity[]>;
+    update(id: string, data: Partial<Entity>): Promise<Entity | null>;
+    delete(id: string): Promise<boolean>;
 }
