@@ -1,29 +1,42 @@
-import { ApiHandler, AppError, ResponseData } from "@app/shared"
-import { Request, Response } from "express"
-import { logger } from "@app/utils"
+import { Request, Response, NextFunction } from "express";
+import { logger } from "../utils";
+import { ResponseData } from "@app/shared/types/response";
 
-export const notfoundHandler = ApiHandler((req: Request, res: Response) => {
-    const error = AppError.notFound(`Resource Not Found ${req.url}`);
-    logger.error(error.message, error.statusCode)
-    const response: ResponseData<undefined> = {
-        success: false,
-        message: error.message,
-        status: error.statusCode,
-        description: "We could not find the resource you are looking for",
-    }
-    res.status(response.status).json(response)
-    return Promise.resolve();
-})
+export const notFoundHandler = (req: Request, res: Response, next: NextFunction) => {
+  const error = AppError.notFound(`Resource not found: ${req.method} ${req.originalUrl}`);
+  next(error);
+};
 
-export const errorHandler = (err: Error, _: Request, res: Response) => {
-    logger.error(err.message, err);
-    const statusCode = err instanceof AppError ? err.statusCode : 500;
-    const response: ResponseData<undefined> = {
-        status: statusCode,
-        message: err.message,
-        success: false,
-        description: `An Error Occurred with status code ${statusCode}`,
-    }
-    res.status(statusCode).json(response);
-    return Promise.resolve();
-}
+export const errorHandler = (
+  err: Error,
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  let error = err;
+
+  if (!(error instanceof AppError)) {
+    error = AppError.internal("An unexpected error occurred", {
+      isOperational: false,
+      cause: error,
+    });
+  }
+
+  const appError = error as AppError;
+  const problemDetails = appError.toProblemDetails(req);
+
+  logger.error(appError.toString(), {
+    url: req.originalUrl,
+    method: req.method,
+    ip: req.ip,
+    user: req.user?.id,
+    ...problemDetails,
+  });
+
+  const response: ResponseData = {
+    success: false,
+    error: problemDetails,
+  };
+
+  res.status(appError.statusCode).json(response);
+};
