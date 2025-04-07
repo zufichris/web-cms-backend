@@ -1,29 +1,30 @@
-import { ApiHandler, AppError, ResponseData } from "@app/shared"
-import { Request, Response } from "express"
-import { logger } from "@app/utils"
+import { NextFunction, Request, Response } from "express";
+import { logger } from "../utils";
+import { AppError } from "@app/shared/application/app.error";
+import { ApiHandler } from "@app/shared/infrastructure/http/api-handler";
 
-export const notfoundHandler = ApiHandler((req: Request, res: Response) => {
-    const error = AppError.notFound(`Resource Not Found ${req.url}`);
-    logger.error(error.message, error.statusCode)
-    const response: ResponseData<undefined> = {
-        success: false,
-        message: error.message,
-        status: error.statusCode,
-        description: "We could not find the resource you are looking for",
-    }
-    res.status(response.status).json(response)
-    return Promise.resolve();
-})
+export const notFoundMiddleware = ApiHandler((req, _, next) => {
+  const error = AppError.notFound(
+    `Resource not found: ${req.method} ${req.originalUrl}`,
+  );
+  next(error);
+});
 
-export const errorHandler = (err: Error, _: Request, res: Response) => {
-    logger.error(err.message, err);
-    const statusCode = err instanceof AppError ? err.statusCode : 500;
-    const response: ResponseData<undefined> = {
-        status: statusCode,
-        message: err.message,
-        success: false,
-        description: `An Error Occurred with status code ${statusCode}`,
-    }
-    res.status(statusCode).json(response);
-    return Promise.resolve();
-}
+export const errorMiddleware = (
+  err: unknown,
+  req: Request,
+  res: Response,
+  _: NextFunction,
+) => {
+  let error = err as AppError;
+  if (!(error instanceof AppError)) {
+    error = AppError.internal();
+  }
+  logger.error(error.error?.message || error.message, {
+    url: req.originalUrl,
+    method: req.method,
+    ip: req.ip,
+    error: error.error || error,
+  });
+  res.error(error.error);
+};

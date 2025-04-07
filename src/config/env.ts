@@ -23,8 +23,7 @@ const parsedEnv = envValidator.safeParse({
 if (!parsedEnv.success) {
   logger.error(
     "-Invalid environment variables:\n",
-    parsedEnv.error.errors.map((error) => error.message)
-      .join("\n")
+    parsedEnv.error.errors.map((error) => error.message).join("\n"),
   );
   process.exit(1);
 }

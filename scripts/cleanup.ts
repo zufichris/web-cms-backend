@@ -13,7 +13,9 @@ const pathsToRemove = ["logs", "build", "node_modules", "package-lock.json"];
 async function confirmRemoval(): Promise<boolean> {
   return new Promise((resolve) => {
     rl.question(
-      "The following will be deleted? (y/n): \n".concat(pathsToRemove.join("\n")),
+      "The following will be deleted? (y/n): \n".concat(
+        pathsToRemove.join("\n"),
+      ),
       (answer) => {
         resolve(answer.toLowerCase() === "y");
       },
