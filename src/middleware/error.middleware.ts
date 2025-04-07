@@ -1,42 +1,30 @@
-import { Request, Response, NextFunction } from "express";
+import { NextFunction, Request, Response } from "express";
 import { logger } from "../utils";
-import { ResponseData } from "@app/shared/types/response";
+import { AppError } from "@app/shared/application/app.error";
+import { ApiHandler } from "@app/shared/infrastructure/http/api-handler";
 
-export const notFoundHandler = (req: Request, res: Response, next: NextFunction) => {
-  const error = AppError.notFound(`Resource not found: ${req.method} ${req.originalUrl}`);
+export const notFoundMiddleware = ApiHandler((req, _, next) => {
+  const error = AppError.notFound(
+    `Resource not found: ${req.method} ${req.originalUrl}`,
+  );
   next(error);
-};
+});
 
-export const errorHandler = (
-  err: Error,
+export const errorMiddleware = (
+  err: unknown,
   req: Request,
   res: Response,
-  next: NextFunction
+  _: NextFunction,
 ) => {
-  let error = err;
-
+  let error = err as AppError;
   if (!(error instanceof AppError)) {
-    error = AppError.internal("An unexpected error occurred", {
-      isOperational: false,
-      cause: error,
-    });
+    error = AppError.internal();
   }
-
-  const appError = error as AppError;
-  const problemDetails = appError.toProblemDetails(req);
-
-  logger.error(appError.toString(), {
+  logger.error(error.error?.message || error.message, {
     url: req.originalUrl,
     method: req.method,
     ip: req.ip,
-    user: req.user?.id,
-    ...problemDetails,
+    error: error.error || error,
   });
-
-  const response: ResponseData = {
-    success: false,
-    error: problemDetails,
-  };
-
-  res.status(appError.statusCode).json(response);
+  res.error(error.error);
 };
