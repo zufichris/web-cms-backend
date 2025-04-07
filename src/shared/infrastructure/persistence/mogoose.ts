@@ -1,25 +1,28 @@
+
 import { AppError } from "@app/shared/application/app.error";
 import { QueryParams } from "@app/shared/application/dtos/request";
 import { logger } from "@app/utils";
-import { FilterQuery, QueryOptions, ProjectionType, Model, Error as MongooseErrors } from "mongoose";
+import { QueryOptions, ProjectionType, Model, Error as MongooseErrors, RootFilterQuery, Document } from "mongoose";
 
 interface MongooseQueryParams<Doc> {
-  filter?: FilterQuery<Doc>;
+  filter?: RootFilterQuery<Doc>;
   projection?: ProjectionType<Doc>;
   options: QueryOptions<Doc>;
 }
 
-export abstract class MongoBaseRepository<Doc> {
+export abstract class MongoBaseRepository<Doc extends Document> {
   public readonly model: Model<Doc>;
   constructor(model: Model<Doc>) {
     this.model = model
   }
   protected toMongooseQuery(
-    query: QueryParams<string[]>
+    query?: QueryParams<string[]>
   ): MongooseQueryParams<Doc> {
-    const projection = this.buildProjection(query.fields);
-    const filter = this.buildFilters(query.filters || {});
-    const options = this.buildOptions(query.options);
+    const { fields: QFields, filters: QFilters, options: QOptions } = query ?? {}
+
+    const projection = this.buildProjection(QFields);
+    const filter = this.buildFilters(QFilters || {});
+    const options = this.buildOptions(QOptions || {});
     return { filter, projection, options };
   }
 
@@ -30,7 +33,7 @@ export abstract class MongoBaseRepository<Doc> {
     }, {} as ProjectionType<Doc>);
   }
 
-  protected buildFilters(filters?: Record<string, Record<string, unknown>>): FilterQuery<Doc> {
+  protected buildFilters(filters?: Record<string, Record<string, unknown>>): RootFilterQuery<Doc> {
     logger.todo("Handle Mongoose Search class MongoBaseRepository")
     const filterQuery = {} as Record<string, object>;
     if (filters) {
@@ -137,5 +140,60 @@ export abstract class MongoBaseRepository<Doc> {
     }
     logger.error('Unexpected database error', error);
     throw AppError.internal()
+  }
+
+  async findById(id: string, fields?: QueryParams<string[]>['fields'], queryOptions?: QueryParams<string[]>['options']): Promise<ReturnType<Doc['toObject']>> {
+    try {
+      const projection = this.buildProjection(fields)
+      const options = this.buildOptions(queryOptions ?? {})
+      const res = await this.model.findById(id, projection, options);
+      if (!res) {
+        throw AppError.notFound(`Item with id ${id} not found`);
+      }
+      return res.toObject() as ReturnType<Doc['toObject']>
+    } catch (error) {
+      this.handleError(error)
+    }
+  }
+  async findOne(query?: QueryParams<string[]>) {
+    try {
+      const { options, filter, projection } = this.toMongooseQuery(query)
+      const res = await this.model.findOne(filter, projection, options);
+      if (!res) {
+        throw AppError.notFound('Item Not Found');
+      }
+      return res.toObject();
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+  async query(query?: QueryParams<string[]>): Promise<{
+    items: Array<unknown>,
+    totalCount: number,
+    filterCount: number,
+  }> {
+    try {
+      const { options, filter, projection } = this.toMongooseQuery(query);
+      const [totalCount, filterCount, items] = await Promise.all([
+        this.count(),
+        this.count(query?.filters),
+        this.model.find(filter as RootFilterQuery<Doc>, projection, options).then(docs => docs.map(doc => doc.toObject()))
+      ]);
+      return { totalCount, filterCount, items }
+    } catch (error) {
+      this.handleError(error)
+    }
+  }
+  async count(filters?: QueryParams<string[]>["filters"]): Promise<number> {
+    try {
+      const query = this.buildFilters(filters)
+      const count = await this.model.countDocuments(query)
+      if (typeof count !== 'number') {
+        throw new AppError("Error Counting Items")
+      }
+      return count
+    } catch (error) {
+      this.handleError(error)
+    }
   }
 }
