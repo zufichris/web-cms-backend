@@ -5,8 +5,8 @@ export const logger = {
   todo(info: string): void {
     console.warn("\n 📝 TODO:", info, "\n");
   },
-  warn(info: string,data?: unknown): void {
-    console.warn("\n ⚠️ Warning:", info, "\n",data);
+  warn(info: string, data?: unknown): void {
+    console.warn("\n ⚠️ Warning:", info, "\n", data);
   },
   debug(info: string, data?: unknown): void {
     console.debug("\n 🔍 ", info, "\t", data ?? "", "\n");
