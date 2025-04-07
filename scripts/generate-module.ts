@@ -1,7 +1,7 @@
-import { formatStringToCamelCase } from '@app/utils/format'; // Ensure this path is correct
-import * as fs from 'fs';
-import * as path from 'path';
-import { promisify } from 'util';
+import { formatStringToCamelCase } from "@app/utils/format"; // Ensure this path is correct
+import * as fs from "fs";
+import * as path from "path";
+import { promisify } from "util";
 
 // Promisified FS Functions
 const mkdir = promisify(fs.mkdir);
@@ -16,18 +16,19 @@ const writeFile = promisify(fs.writeFile);
  * @returns Object with formatted name variations
  */
 function getNameFormats(name: string): {
-    camelCaseName: string;
-    pascalCaseName: string;
-    kebabCaseName: string;
-    snakeUpperCaseName: string;
+  camelCaseName: string;
+  pascalCaseName: string;
+  kebabCaseName: string;
+  snakeUpperCaseName: string;
 } {
-    const normalizedName = name.replace(/[-_]/g, ' ');
-    const camelCaseName = formatStringToCamelCase(normalizedName);
-    const pascalCaseName = camelCaseName.charAt(0).toUpperCase() + camelCaseName.slice(1);
-    const kebabCaseName = normalizedName.toLowerCase().replace(/\s+/g, '-');
-    const snakeUpperCaseName = normalizedName.toUpperCase().replace(/\s+/g, '_');
+  const normalizedName = name.replace(/[-_]/g, " ");
+  const camelCaseName = formatStringToCamelCase(normalizedName);
+  const pascalCaseName =
+    camelCaseName.charAt(0).toUpperCase() + camelCaseName.slice(1);
+  const kebabCaseName = normalizedName.toLowerCase().replace(/\s+/g, "-");
+  const snakeUpperCaseName = normalizedName.toUpperCase().replace(/\s+/g, "_");
 
-    return { camelCaseName, pascalCaseName, kebabCaseName, snakeUpperCaseName };
+  return { camelCaseName, pascalCaseName, kebabCaseName, snakeUpperCaseName };
 }
 
 /**
@@ -37,13 +38,15 @@ function getNameFormats(name: string): {
  * @param content - Content to write to the file
  */
 async function createFile(filePath: string, content: string): Promise<void> {
-    const dir = path.dirname(filePath);
-    await mkdir(dir, { recursive: true });
-    if (fs.existsSync(filePath)) {
-        console.warn(`   Warning: File already exists and will be overwritten: ${path.relative(process.cwd(), filePath)}`);
-    }
-    await writeFile(filePath, content, 'utf-8');
-    console.info(`   Created: ${path.relative(process.cwd(), filePath)}`);
+  const dir = path.dirname(filePath);
+  await mkdir(dir, { recursive: true });
+  if (fs.existsSync(filePath)) {
+    console.warn(
+      `   Warning: File already exists and will be overwritten: ${path.relative(process.cwd(), filePath)}`,
+    );
+  }
+  await writeFile(filePath, content, "utf-8");
+  console.info(`   Created: ${path.relative(process.cwd(), filePath)}`);
 }
 
 /**
@@ -52,13 +55,16 @@ async function createFile(filePath: string, content: string): Promise<void> {
  * @param type - Type of template to generate
  * @returns Generated template string
  */
-function generateTemplate(nameFormats: ReturnType<typeof getNameFormats>, type: string): string {
-    const { pascalCaseName, camelCaseName, kebabCaseName } = nameFormats;
-    const filterableFieldsTypeName = `${pascalCaseName}FilterableFields`;
-    const defaultFilterableFieldsValue = `['id', 'createdAt', 'updatedAt']`; // Adjusted to match placeholder comment
+function generateTemplate(
+  nameFormats: ReturnType<typeof getNameFormats>,
+  type: string,
+): string {
+  const { pascalCaseName, camelCaseName, kebabCaseName } = nameFormats;
+  const filterableFieldsTypeName = `${pascalCaseName}FilterableFields`;
+  const defaultFilterableFieldsValue = `['id', 'createdAt', 'updatedAt']`; // Adjusted to match placeholder comment
 
-    const templates: Record<string, string> = {
-        'domain/entity': `import { BaseEntitySchema } from '@app/shared';
+  const templates: Record<string, string> = {
+    "domain/entity": `import { BaseEntitySchema } from '@app/shared';
 import { z } from 'zod';
 
 export const ${pascalCaseName}EntitySchema = BaseEntitySchema.extend({
@@ -68,7 +74,7 @@ export const ${pascalCaseName}EntitySchema = BaseEntitySchema.extend({
 
 export type ${pascalCaseName} = z.infer<typeof ${pascalCaseName}EntitySchema>;`,
 
-        'domain/repository': `import { IBaseRepository } from '@app/shared';
+    "domain/repository": `import { IBaseRepository } from '@app/shared';
 import { ${pascalCaseName} } from '@app/modules/${kebabCaseName}/domain/entities';
 
 export type ${filterableFieldsTypeName} = ${defaultFilterableFieldsValue};
@@ -76,7 +82,7 @@ export type ${filterableFieldsTypeName} = ${defaultFilterableFieldsValue};
 export interface I${pascalCaseName}Repository extends IBaseRepository<${pascalCaseName}, ${filterableFieldsTypeName}> {
 }`,
 
-        'domain/use-case/base': `
+    "domain/use-case/base": `
 import { I${pascalCaseName}Repository } from '@app/modules/${kebabCaseName}/domain/repositories';
 import { logger } from '@app/utils/logger';
 
@@ -119,7 +125,7 @@ export abstract class Base${pascalCaseName}UseCase<TInput, TOutput> implements I
     }
 }`,
 
-        'domain/use-case/create': `
+    "domain/use-case/create": `
 import { Create${pascalCaseName}Dto } from '@app/modules/${kebabCaseName}/application/dtos';
 import { ${pascalCaseName} } from '@app/modules/${kebabCaseName}/domain/entities';
 import { Base${pascalCaseName}UseCase } from '@app/modules/${kebabCaseName}/domain/use-cases/base';
@@ -138,7 +144,7 @@ export class Create${pascalCaseName}UseCase extends Base${pascalCaseName}UseCase
     }
 }`,
 
-        'domain/use-case/update': `
+    "domain/use-case/update": `
 import { Update${pascalCaseName}Dto } from '@app/modules/${kebabCaseName}/application/dtos';
 import { ${pascalCaseName} } from '@app/modules/${kebabCaseName}/domain/entities';
 import { Base${pascalCaseName}UseCase } from '@app/modules/${kebabCaseName}/domain/use-cases/base';
@@ -162,7 +168,7 @@ export class Update${pascalCaseName}UseCase extends Base${pascalCaseName}UseCase
     }
 }`,
 
-        'domain/use-case/get': `
+    "domain/use-case/get": `
 import { ${pascalCaseName} } from '@app/modules/${kebabCaseName}/domain/entities';
 import { Base${pascalCaseName}UseCase } from '@app/modules/${kebabCaseName}/domain/use-cases/base';
 import { logger } from '@app/utils/logger';
@@ -184,7 +190,7 @@ export class Get${pascalCaseName}UseCase extends Base${pascalCaseName}UseCase<st
     }
 }`,
 
-        'domain/use-case/delete': `
+    "domain/use-case/delete": `
 import { Base${pascalCaseName}UseCase } from '@app/modules/${kebabCaseName}/domain/use-cases/base';
 import { logger } from '@app/utils/logger';
 
@@ -205,7 +211,7 @@ export class Delete${pascalCaseName}UseCase extends Base${pascalCaseName}UseCase
     }
 }`,
 
-        'domain/use-case/query': `
+    "domain/use-case/query": `
 import { Query${pascalCaseName}Dto } from '@app/modules/${kebabCaseName}/application/dtos';
 import { ${pascalCaseName} } from '@app/modules/${kebabCaseName}/domain/entities';
 import { Base${pascalCaseName}UseCase } from '@app/modules/${kebabCaseName}/domain/use-cases/base';
@@ -232,7 +238,7 @@ export class Query${pascalCaseName}UseCase extends Base${pascalCaseName}UseCase<
     }
 }`,
 
-        'application/dto': `import { z } from 'zod';
+    "application/dto": `import { z } from 'zod';
 import { Create${pascalCaseName}ValidationSchema, Update${pascalCaseName}ValidationSchemaBody, Query${pascalCaseName}ValidationSchema } from '@app/modules/${kebabCaseName}/infrastructure/http/validation';
 
 export type Create${pascalCaseName}Dto = z.infer<typeof Create${pascalCaseName}ValidationSchema>;
@@ -240,7 +246,7 @@ export type Update${pascalCaseName}Dto = z.infer<typeof Update${pascalCaseName}V
 export type Query${pascalCaseName}Dto = z.infer<typeof Query${pascalCaseName}ValidationSchema>;
 `,
 
-        'infra/persistence/model': `import mongoose, { Schema, Document, Model } from 'mongoose';
+    "infra/persistence/model": `import mongoose, { Schema, Document, Model } from 'mongoose';
 import { ${pascalCaseName} } from '@app/modules/${kebabCaseName}/domain/entities';
 
 type ${pascalCaseName}Document = Document & Omit<${pascalCaseName}>;
@@ -257,7 +263,7 @@ const ${camelCaseName}Schema = new Schema<${pascalCaseName}Document>({
 
 export const ${pascalCaseName}Model: Model<${pascalCaseName}Document> = mongoose.models.${pascalCaseName} || mongoose.model<${pascalCaseName}Document>('${pascalCaseName}', ${camelCaseName}Schema);`,
 
-        'infra/persistence/repository': `
+    "infra/persistence/repository": `
 import { Model,Document} from 'mongoose';
 import { ${pascalCaseName}Model} from '@app/modules/${kebabCaseName}/infrastructure/persistence/mongoose/models';
 import { I${pascalCaseName}Repository, ${filterableFieldsTypeName} } from '@app/modules/${kebabCaseName}/domain/repositories';
@@ -273,7 +279,7 @@ export class Mongoose${pascalCaseName}Repository extends MongoBaseRepository<${p
     }
 }`,
 
-        'infra/http/controller': `
+    "infra/http/controller": `
 import { Request, Response } from 'express';
 import { ApiHandler, AuthContext, BaseController} from '@app/shared';
 import { Create${pascalCaseName}UseCase, Get${pascalCaseName}UseCase, Update${pascalCaseName}UseCase, Delete${pascalCaseName}UseCase, Query${pascalCaseName}UseCase } from '@app/modules/${kebabCaseName}/domain/use-cases';
@@ -328,7 +334,7 @@ export class ${pascalCaseName}Controller extends BaseController {
     });
 }`,
 
-        'infra/http/route': `import { Router } from 'express';
+    "infra/http/route": `import { Router } from 'express';
 import { ${pascalCaseName}Controller } from '@app/modules/${kebabCaseName}/infrastructure/http/controllers';
 
 export function create${pascalCaseName}Router(controller: ${pascalCaseName}Controller): Router {
@@ -343,7 +349,7 @@ export function create${pascalCaseName}Router(controller: ${pascalCaseName}Contr
     return router;
 }`,
 
-        'infra/http/validation': `import { z } from 'zod';
+    "infra/http/validation": `import { z } from 'zod';
 import { PaginationQuerySchema } from '@app/shared';
 
 const ${pascalCaseName}CoreSchema = z.object({
@@ -361,7 +367,7 @@ export const Query${pascalCaseName}ValidationSchema = PaginationQuerySchema.exte
     name: z.string().optional(),
 }).strict();`,
 
-        'module/index': `export * from './domain/entities';
+    "module/index": `export * from './domain/entities';
 export * from './domain/repositories';
 export * from './domain/use-cases';
 export * from './application/dtos';
@@ -390,98 +396,188 @@ export function init${pascalCaseName}Module(): Router {
     const router = create${pascalCaseName}Router(controller);
     logger.info(\`${pascalCaseName} Module initialized successfully\`);
     return router;
-}`
-    };
+}`,
+  };
 
-    const template = templates[type];
-    if (!template) {
-        console.warn(`   Warning: Template for type "${type}" not found for module ${pascalCaseName}`);
-        return `// Placeholder for ${type} - Module: ${pascalCaseName}\n// Template not found\n`;
-    }
-    return template;
+  const template = templates[type];
+  if (!template) {
+    throw new Error(`Template for type "${type}" not found.`);
+  }
+  if (!template) {
+    console.warn(
+      `   Warning: Template for type "${type}" not found for module ${pascalCaseName}`,
+    );
+    return `// Placeholder for ${type} - Module: ${pascalCaseName}\n// Template not found\n`;
+  }
+  return template;
 }
 
 // Generation Logic
 
 interface FileGenerationConfig {
-    pathTemplate: string;
-    templateKey?: string;
-    indexContent?: string;
+  pathTemplate: string;
+  templateKey?: string;
+  indexContent?: string;
 }
 
 async function generateModule(moduleInputName: string): Promise<void> {
-    console.log(`\n🚀 Generating module: "${moduleInputName}"`);
-    const nameFormats = getNameFormats(moduleInputName);
-    const { kebabCaseName, pascalCaseName } = nameFormats;
-    const baseModulePath = path.resolve(__dirname, '..', 'src', 'modules', kebabCaseName);
-    console.log(`   Target directory: ${baseModulePath}`);
+  console.log(`\n🚀 Generating module: "${moduleInputName}"`);
+  const nameFormats = getNameFormats(moduleInputName);
+  const { kebabCaseName, pascalCaseName } = nameFormats;
+  const baseModulePath = path.resolve(
+    __dirname,
+    "..",
+    "src",
+    "modules",
+    kebabCaseName,
+  );
+  console.log(`   Target directory: ${baseModulePath}`);
 
-    const structureConfig: FileGenerationConfig[] = [
-        { pathTemplate: `domain/entities/${kebabCaseName}.entity.ts`, templateKey: 'domain/entity' },
-        { pathTemplate: `domain/entities/index.ts`, indexContent: `export * from './${kebabCaseName}.entity';` },
-        { pathTemplate: `domain/repositories/${kebabCaseName}.repository.ts`, templateKey: 'domain/repository' },
-        { pathTemplate: `domain/repositories/index.ts`, indexContent: `export * from './${kebabCaseName}.repository';` },
-        { pathTemplate: `domain/use-cases/base.ts`, templateKey: 'domain/use-case/base' },
-        { pathTemplate: `domain/use-cases/create-${kebabCaseName}.use-case.ts`, templateKey: 'domain/use-case/create' },
-        { pathTemplate: `domain/use-cases/update-${kebabCaseName}.use-case.ts`, templateKey: 'domain/use-case/update' },
-        { pathTemplate: `domain/use-cases/delete-${kebabCaseName}.use-case.ts`, templateKey: 'domain/use-case/delete' },
-        { pathTemplate: `domain/use-cases/get-${kebabCaseName}.use-case.ts`, templateKey: 'domain/use-case/get' },
-        { pathTemplate: `domain/use-cases/query-${kebabCaseName}.use-case.ts`, templateKey: 'domain/use-case/query' },
-        { pathTemplate: `domain/use-cases/index.ts`, indexContent: `export * from './base';\nexport * from './create-${kebabCaseName}.use-case';\nexport * from './update-${kebabCaseName}.use-case';\nexport * from './delete-${kebabCaseName}.use-case';\nexport * from './get-${kebabCaseName}.use-case';\nexport * from './query-${kebabCaseName}.use-case';` },
-        { pathTemplate: `application/dtos/${kebabCaseName}.dto.ts`, templateKey: 'application/dto' },
-        { pathTemplate: `application/dtos/index.ts`, indexContent: `export * from './${kebabCaseName}.dto';` },
-        { pathTemplate: `infrastructure/persistence/mongoose/models/${kebabCaseName}.model.ts`, templateKey: 'infra/persistence/model' },
-        { pathTemplate: `infrastructure/persistence/mongoose/models/index.ts`, indexContent: `export * from './${kebabCaseName}.model';` },
-        { pathTemplate: `infrastructure/persistence/mongoose/repositories/${kebabCaseName}.repository.ts`, templateKey: 'infra/persistence/repository' },
-        { pathTemplate: `infrastructure/persistence/mongoose/repositories/index.ts`, indexContent: `export * from './${kebabCaseName}.repository';` },
-        { pathTemplate: `infrastructure/http/controllers/${kebabCaseName}.controller.ts`, templateKey: 'infra/http/controller' },
-        { pathTemplate: `infrastructure/http/controllers/index.ts`, indexContent: `export * from './${kebabCaseName}.controller';` },
-        { pathTemplate: `infrastructure/http/routes/${kebabCaseName}.routes.ts`, templateKey: 'infra/http/route' },
-        { pathTemplate: `infrastructure/http/routes/index.ts`, indexContent: `export * from './${kebabCaseName}.routes';` },
-        { pathTemplate: `infrastructure/http/validation/${kebabCaseName}.schemas.ts`, templateKey: 'infra/http/validation' },
-        { pathTemplate: `infrastructure/http/validation/index.ts`, indexContent: `export * from './${kebabCaseName}.schemas';` },
-        { pathTemplate: `index.ts`, templateKey: 'module/index' },
-    ];
+  const structureConfig: FileGenerationConfig[] = [
+    {
+      pathTemplate: `domain/entities/${kebabCaseName}.entity.ts`,
+      templateKey: "domain/entity",
+    },
+    {
+      pathTemplate: `domain/entities/index.ts`,
+      indexContent: `export * from './${kebabCaseName}.entity';`,
+    },
+    {
+      pathTemplate: `domain/repositories/${kebabCaseName}.repository.ts`,
+      templateKey: "domain/repository",
+    },
+    {
+      pathTemplate: `domain/repositories/index.ts`,
+      indexContent: `export * from './${kebabCaseName}.repository';`,
+    },
+    {
+      pathTemplate: `domain/use-cases/base.ts`,
+      templateKey: "domain/use-case/base",
+    },
+    {
+      pathTemplate: `domain/use-cases/create-${kebabCaseName}.use-case.ts`,
+      templateKey: "domain/use-case/create",
+    },
+    {
+      pathTemplate: `domain/use-cases/update-${kebabCaseName}.use-case.ts`,
+      templateKey: "domain/use-case/update",
+    },
+    {
+      pathTemplate: `domain/use-cases/delete-${kebabCaseName}.use-case.ts`,
+      templateKey: "domain/use-case/delete",
+    },
+    {
+      pathTemplate: `domain/use-cases/get-${kebabCaseName}.use-case.ts`,
+      templateKey: "domain/use-case/get",
+    },
+    {
+      pathTemplate: `domain/use-cases/query-${kebabCaseName}.use-case.ts`,
+      templateKey: "domain/use-case/query",
+    },
+    {
+      pathTemplate: `domain/use-cases/index.ts`,
+      indexContent: `export * from './base';\nexport * from './create-${kebabCaseName}.use-case';\nexport * from './update-${kebabCaseName}.use-case';\nexport * from './delete-${kebabCaseName}.use-case';\nexport * from './get-${kebabCaseName}.use-case';\nexport * from './query-${kebabCaseName}.use-case';`,
+    },
+    {
+      pathTemplate: `application/dtos/${kebabCaseName}.dto.ts`,
+      templateKey: "application/dto",
+    },
+    {
+      pathTemplate: `application/dtos/index.ts`,
+      indexContent: `export * from './${kebabCaseName}.dto';`,
+    },
+    {
+      pathTemplate: `infrastructure/persistence/mongoose/models/${kebabCaseName}.model.ts`,
+      templateKey: "infra/persistence/model",
+    },
+    {
+      pathTemplate: `infrastructure/persistence/mongoose/models/index.ts`,
+      indexContent: `export * from './${kebabCaseName}.model';`,
+    },
+    {
+      pathTemplate: `infrastructure/persistence/mongoose/repositories/${kebabCaseName}.repository.ts`,
+      templateKey: "infra/persistence/repository",
+    },
+    {
+      pathTemplate: `infrastructure/persistence/mongoose/repositories/index.ts`,
+      indexContent: `export * from './${kebabCaseName}.repository';`,
+    },
+    {
+      pathTemplate: `infrastructure/http/controllers/${kebabCaseName}.controller.ts`,
+      templateKey: "infra/http/controller",
+    },
+    {
+      pathTemplate: `infrastructure/http/controllers/index.ts`,
+      indexContent: `export * from './${kebabCaseName}.controller';`,
+    },
+    {
+      pathTemplate: `infrastructure/http/routes/${kebabCaseName}.routes.ts`,
+      templateKey: "infra/http/route",
+    },
+    {
+      pathTemplate: `infrastructure/http/routes/index.ts`,
+      indexContent: `export * from './${kebabCaseName}.routes';`,
+    },
+    {
+      pathTemplate: `infrastructure/http/validation/${kebabCaseName}.schemas.ts`,
+      templateKey: "infra/http/validation",
+    },
+    {
+      pathTemplate: `infrastructure/http/validation/index.ts`,
+      indexContent: `export * from './${kebabCaseName}.schemas';`,
+    },
+    { pathTemplate: `index.ts`, templateKey: "module/index" },
+  ];
 
-    try {
-        await Promise.all(structureConfig.map(config => {
-            const filePath = path.join(baseModulePath, config.pathTemplate);
-            const content = config.indexContent ?? generateTemplate(nameFormats, config.templateKey!);
-            return createFile(filePath, content);
-        }));
-        console.log(`\n✅ Module "${pascalCaseName}" (${kebabCaseName}) generated successfully at ${baseModulePath}`);
-        console.log(`\n   ❗ Remember to:`);
-        console.log(`      1. Add specific fields to Entity, Model, and Validation Schemas.`);
-        console.log(`      2. Define correct filterable fields in Repository Interface.`);
-        console.log(`      3. Implement custom repository methods if needed.`);
-        console.log(`      4. Apply validation and auth middleware as required.`);
-    } catch (error) {
-        console.error('\n❌ Error during module generation:', error);
-        process.exit(1);
-    }
+  try {
+    await Promise.all(
+      structureConfig.map((config) => {
+        const filePath = path.join(baseModulePath, config.pathTemplate);
+        const content =
+          config.indexContent ??
+          generateTemplate(nameFormats, config.templateKey!);
+        return createFile(filePath, content);
+      }),
+    );
+    console.log(
+      `\n✅ Module "${pascalCaseName}" (${kebabCaseName}) generated successfully at ${baseModulePath}`,
+    );
+    console.log(`\n   ❗ Remember to:`);
+    console.log(
+      `      1. Add specific fields to Entity, Model, and Validation Schemas.`,
+    );
+    console.log(
+      `      2. Define correct filterable fields in Repository Interface.`,
+    );
+    console.log(`      3. Implement custom repository methods if needed.`);
+    console.log(`      4. Apply validation and auth middleware as required.`);
+  } catch (error) {
+    console.error("\n❌ Error during module generation:", error);
+    process.exit(1);
+  }
 }
 
 // CLI Entry Point
 
 async function main(): Promise<void> {
-    if (process.argv.length < 3) {
-        console.error('\n❌ Error: Please provide a module name.');
-        console.error('Usage: ts-node script.ts <module-name>');
-        process.exit(1);
-    }
+  if (process.argv.length < 3) {
+    console.error("\n❌ Error: Please provide a module name.");
+    console.error("Usage: ts-node script.ts <module-name>");
+    process.exit(1);
+  }
 
-    const moduleName = process.argv[2].trim();
-    if (!moduleName || moduleName.startsWith('-')) {
-        console.error(`❌ Error: Invalid module name: "${moduleName}"`);
-        process.exit(1);
-    }
+  const moduleName = process.argv[2].trim();
+  if (!moduleName || moduleName.startsWith("-")) {
+    console.error(`❌ Error: Invalid module name: "${moduleName}"`);
+    process.exit(1);
+  }
 
-    await generateModule(moduleName);
+  await generateModule(moduleName);
 }
 
 if (require.main === module) {
-    main().catch(error => {
-        console.error('\n❌ Unexpected error:', error);
-        process.exit(1);
-    });
+  main().catch((error) => {
+    console.error("\n❌ Unexpected error:", error);
+    process.exit(1);
+  });
 }
