@@ -3,9 +3,12 @@
     "version": "1.0.0",
     "description": "Manage website content dynamically",
     "main": "src/index.ts",
+    "_moduleAliases": {
+        "@app": "build/src"
+    },
     "scripts": {
         "build": "tsx scripts/build.ts",
-        "start": "tsx scripts/build.ts && node build/src/index.js",
+        "start": "tsx scripts/build.ts && node -r module-alias/register build/src/index.js",
         "dev": "nodemon --exec 'tsx' src/index.ts",
         "seed": "tsx scripts/seed.ts",
         "test": "tsx scripts/run-tests.ts",
@@ -44,8 +47,6 @@
         "eslint": "^9.23.0",
         "globals": "^16.0.0",
         "nodemon": "^3.1.9",
-        "ts-node": "^10.9.2",
-        "tsconfig-paths": "^4.2.0",
         "tsx": "^4.19.3",
         "typescript": "^5.8.2",
         "typescript-eslint": "^8.29.0"
@@ -55,6 +56,7 @@
         "cors": "^2.8.5",
         "dotenv": "^16.4.7",
         "express": "^5.1.0",
+        "module-alias": "^2.2.3",
         "mongoose": "^8.13.2",
         "zod": "^3.24.2"
     }
