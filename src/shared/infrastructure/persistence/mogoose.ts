@@ -19,8 +19,7 @@ interface MongooseQueryParams<Entity> {
 export abstract class MongoBaseRepository<
   Entity,
   Fields extends Array<Extract<keyof Entity, string>>,
-> implements IBaseRepository<Entity, Fields>
-{
+> implements IBaseRepository<Entity, Fields> {
   public readonly model: Model<Entity & Document>;
   constructor(model: Model<Entity & Document>) {
     this.model = model;
@@ -37,6 +36,7 @@ export abstract class MongoBaseRepository<
     const projection = this.buildProjection(QFields);
     const filter = this.buildFilters(QFilters || {});
     const options = this.buildOptions(QOptions || {});
+    logger.debug("Mongoose Query", { filter, projection, options });
     return { filter, projection, options };
   }
 
@@ -190,7 +190,7 @@ export abstract class MongoBaseRepository<
       this.handleError(error);
     }
   }
-  async query(query?: QueryParams<Fields>): Promise<QueryResult> {
+  async query(query?: QueryParams<Fields>): Promise<QueryResult<Entity>> {
     try {
       const { options, filter, projection } = this.toMongooseQuery(query);
       const [totalCount, filterCount, items] = await Promise.all([
@@ -229,7 +229,7 @@ export abstract class MongoBaseRepository<
   }
   async update(
     id: ID,
-    newData: Omit<Entity, "id" | "createdAt" | "updatedAt">,
+    newData: Partial<Omit<Entity, "id" | "createdAt" | "updatedAt">>,
   ): Promise<Entity> {
     try {
       const item = await this.findById(id);
