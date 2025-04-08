@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express, { Express } from "express";
 import cors from "cors";
 import { connectDB } from "@app/config/db";
@@ -27,7 +28,7 @@ class App {
     this.initStaticFiles();
     this.initApiRoutes();
     this.initErrorHandlers();
-    // this.initDatabaseConnection()
+    this.initDatabaseConnection()
   }
 
   private initCoreMiddleware(): void {
