@@ -23,6 +23,6 @@
   "ts-node": {
     "esm": true
   },
-  "include": ["src/**/*", "scripts"],
+  "include": ["src/**/*", "scripts", "__tests__/**/*"],
   "exclude": ["node_modules/**", "**/*test.ts"]
 }
