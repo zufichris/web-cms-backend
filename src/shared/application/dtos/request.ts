@@ -21,33 +21,47 @@ export function createQuerySchema<T extends readonly string[]>(
   const dateValidator = (field: string) =>
     dateFields.has(field)
       ? z.string().refine((val) => !isNaN(Date.parse(val)), {
-          message: `Invalid date format for field ${field}`,
-        })
+        message: `Invalid date format for field ${field}`,
+      })
       : z.unknown();
+
+  const operatorSchema = z
+    .object({
+      eq: z.unknown().optional(),
+      contains: z.string().optional(),
+      gt: dateValidator("").or(z.number()).optional(),
+      lt: dateValidator("").or(z.number()).optional(),
+      in: z.array(z.unknown()).min(1).optional(),
+      neq: z.unknown().optional(),
+      between: z.tuple([z.unknown(), z.unknown()]).optional(),
+      startsWith: z.string().optional(),
+      endsWith: z.string().optional(),
+    })
+    .partial()
+    .refine((obj) => Object.keys(obj).length > 0, {
+      message: "Filter object must contain at least one operator",
+    });
 
   return z
     .object({
+      // Filters default to an empty object
       filters: z
         .record(
           z.enum(filterableFields as [string, ...string[]]),
-          z
-            .object({
-              eq: z.unknown().optional(),
-              contains: z.string().optional(),
-              gt: dateValidator("").or(z.number()).optional(),
-              lt: dateValidator("").or(z.number()).optional(),
-              in: z.array(z.unknown()).min(1).optional(),
-              neq: z.unknown().optional(),
-              between: z.tuple([z.unknown(), z.unknown()]).optional(),
-              startsWith: z.string().optional(),
-              endsWith: z.string().optional(),
-            })
-            .partial()
-            .refine((obj) => Object.keys(obj).length > 0, {
-              message: "Filter object must contain at least one operator",
-            }),
+          z.preprocess(
+            (val) => {
+              if (val != null && typeof val === "object" && !Array.isArray(val)) {
+                return val;
+              }
+              return { eq: val };
+            },
+            operatorSchema,
+          ),
         )
-        .optional(),
+        .optional()
+        .default({}), // Ensures filters is {} when not provided
+
+      // Options default to an empty object
       options: z
         .object({
           limit: z.coerce
@@ -85,7 +99,10 @@ export function createQuerySchema<T extends readonly string[]>(
             ),
         })
         .partial()
-        .optional(),
+        .optional()
+        .default({}), // Ensures options is {} when not provided
+
+      // Fields default to all allowed fields
       fields: z
         .union([
           z
@@ -104,14 +121,15 @@ export function createQuerySchema<T extends readonly string[]>(
               },
             ),
         ])
-        .optional() // Make fields entirely optional
-        .transform((fields) => fields ?? [...allowedFields]) // Default to all fields if undefined
+        .optional()
+        .transform((fields) => fields ?? [...allowedFields]) // Default to all fields
         .transform((fields) => [...new Set(fields)]),
     })
     .partial()
     .strict(config?.strict ? "Unknown fields are not allowed" : undefined);
 }
 
+// Rest of the code remains unchanged
 export const ValidatedRequestSchema = z.object({
   params: z.record(z.string()).default({}),
   body: z.unknown().default({}),
