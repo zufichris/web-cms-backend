@@ -9,10 +9,10 @@ export interface IBaseRepository<
   ) => Promise<Entity>;
   update: (
     id: ID,
-    data: Omit<Entity, "id" | "createdAt" | "updatedAt">,
+    data: Partial<Omit<Entity, "id" | "createdAt" | "updatedAt">>,
   ) => Promise<Entity>;
   count: (filters?: QueryParams<Fields>["filters"]) => Promise<number>;
-  query: (query?: QueryParams<Fields>) => Promise<QueryResult>;
+  query: (query?: QueryParams<Fields>) => Promise<QueryResult<Entity>>;
   findById: (
     id: ID,
     fields?: QueryParams<Fields>["fields"],
