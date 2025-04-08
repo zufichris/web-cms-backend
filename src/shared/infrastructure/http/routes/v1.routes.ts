@@ -1,7 +1,7 @@
+import { userRoutes } from "@app/modules/user/infrastructure/http/routes/user.routes";
 import express from "express";
 import { Request, Response } from "express";
 import os from "os";
-
 const router = express.Router();
 
 const API_VERSION = "v1";
@@ -57,6 +57,8 @@ function formatUptime(seconds: number): string {
 
   return `${days}d ${hours}h ${minutes}m ${secs}s`;
 }
+
+router.use("/v1/users", userRoutes);
 
 router.get(BASE_PATH, (_: Request, res: Response) => {
   requestsServed++;
@@ -168,5 +170,7 @@ router.get(`${BASE_PATH}/ping`, (req: Request, res: Response) => {
     ...(echo && { echo }),
   });
 });
+
+
 
 export const routesV1 = router;
