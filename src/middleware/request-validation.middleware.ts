@@ -13,12 +13,8 @@ export function requestValidator() {
         query: req.query,
         headers: req.headers,
       });
-      req.body = validated.body;
-      req.params = validated.params;
-      req.query = validated.query;
-      req.headers.authorization = validated.headers.authorization;
-      req.headers["content-type"] = validated.headers["content-type"];
-      validateRequestSecurity(req);
+      req.validated = validated
+      validateRequestSecurity(req)
       next();
     } catch (error) {
       if (error instanceof ZodError) {
@@ -44,7 +40,6 @@ const validateRequestSecurity = (req: Request) => {
       logger.warn(`Missing security header: ${header}`);
     }
   });
-
   if (req.method !== "GET" && !req.headers["content-type"]) {
     throw new Error("Missing Content-Type header");
   }
