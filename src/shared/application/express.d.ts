@@ -4,7 +4,7 @@ import { ApiResponse, ApiResponseTypes } from "./dtos/response";
 declare global {
   namespace Express {
     interface Request {
-      validated?: ValidatedRequest;
+      validated: ValidatedRequest & { user?: AuthContext };
     }
 
     interface Response {
@@ -24,4 +24,4 @@ declare global {
   }
 }
 
-export {};
+export { };
