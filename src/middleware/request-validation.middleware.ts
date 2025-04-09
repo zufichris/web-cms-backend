@@ -13,7 +13,12 @@ export function requestValidator() {
         query: req.query,
         headers: req.headers,
       });
-      req.validated = validated
+      req.validated = {
+        headers: validated.headers,
+        body: validated.body,
+        params: validated.params,
+        query: validated.query
+      }
       validateRequestSecurity(req)
       next();
     } catch (error) {
