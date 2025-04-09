@@ -47,10 +47,11 @@ export class UserController extends BaseController {
     });
 
     getAll = ApiHandler(async (req: Request, res: Response) => {
-        const query = this.getQuery(['id', 'email', 'name', 'isActive', 'createdAt'])(req.validated?.query)
-        logger.debug("Controller: Query", { query });
+        const query = this.getQuery(['id', 'email', 'name', 'isActive', 'createdAt'], {
+            maxLimit: 50,
+            strict: true
+        })(req.validated.query)
         const result = await this.queryUserUseCase.run(query, this.getContext(req));
-        if (result.success) logger.info(`Controller: Queried Users`);
         res.json_structured(result);
     });
 }
