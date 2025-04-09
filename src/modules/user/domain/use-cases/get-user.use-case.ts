@@ -1,12 +1,15 @@
 
 import { User } from '@app/modules/user/domain/entities';
-import { BaseUserUseCase } from '@app/modules/user/domain/use-cases/base';
-import { AppError } from '@app/shared';
+import { AppError, BaseUseCase } from '@app/shared';
 import { AuthContext } from '@app/shared';
 import { UsecaseResult } from '@app/shared';
 import { logger } from '@app/utils/logger';
+import { IUserRepository } from '../repositories';
 
-export class GetUserUseCase extends BaseUserUseCase<string, User> {
+export class GetUserUseCase extends BaseUseCase<string, User, AuthContext> {
+    constructor(private readonly userRepository: IUserRepository) {
+        super()
+    }
     async execute(id: string, context?: AuthContext): Promise<UsecaseResult<User>> {
         try {
             const entity = await this.userRepository.findById(id);
