@@ -9,10 +9,24 @@ const userSchema = new Schema<UserDocument>({
     role: { type: String, enum: Object.values(UserRole), default: UserRole.USER },
     isActive: { type: Boolean, default: true },
     lastLoginAt: { type: Date },
+    password: String,
+    email: {
+        type: String,
+        unique: true,
+        lowercase: true,
+        required: true,
+    }
 }, {
     timestamps: true,
     versionKey: false,
-    toObject: { transform: (_, ret) => { ret.id = ret._id.toString(); delete ret._id; return ret; } },
+    toObject: {
+        transform: (_, ret) => {
+            ret.id = ret._id.toString();
+            delete ret._id;
+            delete ret.password;
+            return ret;
+        }
+    },
     toJSON: { transform: (_, ret) => { ret.id = ret._id.toString(); delete ret._id; return ret; } }
 });
 
