@@ -48,7 +48,7 @@ export async function seedUsers() {
     assert(conn.connection.db, 'Database connection failed');
 
     try {
-        const UserModel = await conn.connection.db?.createCollection('users')
+        const UserModel = conn.connection.db?.collection('users') || await conn.connection.db?.createCollection('users');
 
         const existingUsers = await UserModel?.find({
             email: { $in: users.map(u => u.email) }
