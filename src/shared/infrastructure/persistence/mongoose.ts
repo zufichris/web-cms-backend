@@ -77,7 +77,8 @@ export abstract class MongoBaseRepository<Entity> implements IBaseRepository<Ent
                 filterQuery[field] = { $lte: transformedValue };
                 break;
               default:
-                filterQuery[field] = { ...value };
+                logger.warn(`Unsupported operator "${operator}" for field "${field}"`);
+                throw new AppError(`Unsupported operator "${operator}" for field "${field}"`, 400);
             }
           }
         } else if (value !== undefined) {
