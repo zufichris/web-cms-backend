@@ -53,7 +53,30 @@ export abstract class MongoBaseRepository<Entity> implements IBaseRepository<Ent
     if (filters) {
       for (const [field, value] of Object.entries(filters)) {
         if (value && typeof value === "object" && !Array.isArray(value)) {
-          filterQuery[field] = { ...value };
+          for (const [operator, operatorValue] of Object.entries(value)) {
+            switch (operator) {
+              case "eq":
+                filterQuery[field] = { $eq: operatorValue };
+                break;
+              case "contains":
+                filterQuery[field] = { $regex: operatorValue, $options: "i" };
+                break;
+              case "gt":
+                filterQuery[field] = { $gt: operatorValue };
+                break;
+              case "gte":
+                filterQuery[field] = { $gte: operatorValue };
+                break;
+              case "lt":
+                filterQuery[field] = { $lt: operatorValue };
+                break;
+              case "lte":
+                filterQuery[field] = { $lte: operatorValue };
+                break;
+              default:
+                filterQuery[field] = { ...value };
+            }
+          }
         } else if (value !== undefined) {
           filterQuery[field] = { $eq: value };
         }
