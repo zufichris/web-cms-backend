@@ -12,7 +12,7 @@ export class GetUserUseCase extends BaseUseCase<string, User, AuthContext> {
     }
     async execute(id: string, context?: AuthContext): Promise<UsecaseResult<User>> {
         try {
-            const entity = await this.userRepository.findById(id);
+            const entity = await this.userRepository.findById(id).catch(_error => { })
             if (!entity) {
                 logger.warn(`[${this.constructor.name}] User not found`, { id, context });
                 throw AppError.notFound(`User with id '${id}' not found`);
