@@ -16,17 +16,13 @@ interface MongooseQueryParams<Entity> {
   options: QueryOptions<Entity>;
 }
 
-export abstract class MongoBaseRepository<
-  Entity,
-  Fields extends Array<Extract<keyof Entity, string>>,
-> implements IBaseRepository<Entity, Fields>
-{
+export abstract class MongoBaseRepository<Entity> implements IBaseRepository<Entity> {
   public readonly model: Model<Entity & Document>;
   constructor(model: Model<Entity & Document>) {
     this.model = model;
   }
   protected toMongooseQuery(
-    query?: QueryParams<Fields>,
+    query?: QueryParams,
   ): MongooseQueryParams<Entity> {
     const {
       fields: QFields,
@@ -35,13 +31,14 @@ export abstract class MongoBaseRepository<
     } = query ?? {};
 
     const projection = this.buildProjection(QFields);
-    const filter = this.buildFilters(QFilters || {});
-    const options = this.buildOptions(QOptions || {});
+    const filter = this.buildFilters(QFilters);
+    const options = this.buildOptions(QOptions);
+    logger.debug("Mongoose Query", { filter, projection, options });
     return { filter, projection, options };
   }
 
   protected buildProjection(
-    fields?: string[],
+    fields?: QueryParams['fields'],
   ): ProjectionType<Entity> | undefined {
     if (!fields || fields.length === 0) return undefined;
     return fields.reduce((acc, field) => {
@@ -50,55 +47,51 @@ export abstract class MongoBaseRepository<
   }
 
   protected buildFilters(
-    filters?: Record<string, Record<string, unknown>>,
+    filters?: QueryParams['filters'],
   ): RootFilterQuery<Entity> {
-    logger.todo("Handle Mongoose Search class MongoBaseRepository");
     const filterQuery = {} as Record<string, object>;
     if (filters) {
-      for (const [field, operators] of Object.entries(filters)) {
-        const fieldConditions: Record<string, unknown> = {};
-        for (const [operator, value] of Object.entries(operators)) {
-          switch (operator) {
-            case "eq":
-              fieldConditions.$eq = value;
-              break;
-            case "contains":
-              fieldConditions.$regex = new RegExp(value as string, "i");
-              break;
-            case "gt":
-            case "lt":
-              fieldConditions[`$${operator}`] = new Date(value as string);
-              break;
-            case "in":
-              fieldConditions.$in = Array.isArray(value) ? value : [value];
-              break;
-            case "neq":
-              fieldConditions.$ne = value;
-              break;
-            case "startsWith":
-              fieldConditions.$regex = new RegExp(`^${value}`, "i");
-              break;
-            case "endsWith":
-              fieldConditions.$regex = new RegExp(`${value}$`, "i");
-              break;
+      for (const [field, value] of Object.entries(filters)) {
+        if (value && typeof value === "object" && !Array.isArray(value)) {
+          for (const [operator, operatorValue] of Object.entries(value)) {
+            const isDate = !isNaN(Date.parse(operatorValue as string));
+            const transformedValue = isDate ? new Date(operatorValue as string) : operatorValue;
+
+            switch (operator) {
+              case "eq":
+                filterQuery[field] = { $eq: transformedValue };
+                break;
+              case "contains":
+                filterQuery[field] = { $regex: operatorValue, $options: "i" };
+                break;
+              case "gt":
+                filterQuery[field] = { $gt: transformedValue };
+                break;
+              case "gte":
+                filterQuery[field] = { $gte: transformedValue };
+                break;
+              case "lt":
+                filterQuery[field] = { $lt: transformedValue };
+                break;
+              case "lte":
+                filterQuery[field] = { $lte: transformedValue };
+                break;
+              default:
+                logger.warn(`Unsupported operator "${operator}" for field "${field}"`);
+                throw new AppError(`Unsupported operator "${operator}" for field "${field}"`, 400);
+            }
           }
-        }
-        if (Object.keys(fieldConditions).length > 0) {
-          filterQuery[field] = { ...filterQuery[field], ...fieldConditions };
+        } else if (value !== undefined) {
+          filterQuery[field] = { $eq: value };
         }
       }
     }
     return filterQuery;
   }
 
-  protected buildOptions(queryOptions: {
-    limit?: number;
-    page?: number;
-    sortField?: string;
-    sortDir?: "asc" | "desc";
-  }): QueryOptions<Entity> {
+  protected buildOptions(queryOptions: QueryParams['options']): QueryOptions<Entity> {
     const options: QueryOptions<Entity> = {};
-    if (queryOptions.limit) {
+    if (queryOptions?.limit) {
       options.limit = queryOptions.limit;
 
       if (queryOptions.page && queryOptions.page > 1) {
@@ -106,9 +99,9 @@ export abstract class MongoBaseRepository<
       }
     }
 
-    if (queryOptions.sortField) {
+    if (queryOptions?.sortField) {
       options.sort = {
-        [queryOptions.sortField]: queryOptions.sortDir === "asc" ? 1 : -1,
+        [queryOptions.sortField]: queryOptions?.sortDir ?? -1,
       } as Record<keyof Entity, 1 | -1>;
     }
 
@@ -157,14 +150,17 @@ export abstract class MongoBaseRepository<
         `Duplicate value for unique field: ${Object.keys(error.keyValue).join(", ")}`,
       );
     }
+    if (error instanceof AppError) {
+      throw error
+    }
     logger.error("Unexpected database error", error);
     throw AppError.internal();
   }
 
   async findById(
     id: string,
-    fields?: QueryParams<Fields>["fields"],
-    queryOptions?: QueryParams<Fields>["options"],
+    fields?: QueryParams['fields'],
+    queryOptions?: QueryParams['options'],
   ): Promise<Entity> {
     try {
       const projection = this.buildProjection(fields);
@@ -178,7 +174,7 @@ export abstract class MongoBaseRepository<
       this.handleError(error);
     }
   }
-  async findOne(query?: QueryParams<Fields>): Promise<Entity> {
+  async findOne(query?: QueryParams): Promise<Entity> {
     try {
       const { options, filter, projection } = this.toMongooseQuery(query);
       const res = await this.model.findOne(filter, projection, options);
@@ -190,7 +186,7 @@ export abstract class MongoBaseRepository<
       this.handleError(error);
     }
   }
-  async query(query?: QueryParams<Fields>): Promise<QueryResult> {
+  async query(query?: QueryParams): Promise<QueryResult<Entity>> {
     try {
       const { options, filter, projection } = this.toMongooseQuery(query);
       const [totalCount, filterCount, items] = await Promise.all([
@@ -205,7 +201,7 @@ export abstract class MongoBaseRepository<
       this.handleError(error);
     }
   }
-  async count(filters?: QueryParams<Fields>["filters"]): Promise<number> {
+  async count(filters?: QueryParams["filters"]): Promise<number> {
     try {
       const query = this.buildFilters(filters);
       const count = await this.model.countDocuments(query);
@@ -229,12 +225,12 @@ export abstract class MongoBaseRepository<
   }
   async update(
     id: ID,
-    newData: Omit<Entity, "id" | "createdAt" | "updatedAt">,
+    newData: Partial<Omit<Entity, "id" | "createdAt" | "updatedAt">>,
   ): Promise<Entity> {
     try {
       const item = await this.findById(id);
       if (!item) {
-        throw AppError.notFound(`Item With ID ${id} Notfound`);
+        throw AppError.notFound(`Item With ID ${id} not found`);
       }
       const data = {
         ...item,

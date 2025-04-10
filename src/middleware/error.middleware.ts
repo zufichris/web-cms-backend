@@ -26,5 +26,6 @@ export const errorMiddleware = (
     ip: req.ip,
     error: error.error || error,
   });
-  res.error(error.error);
+
+  res.status(error.error?.status || 500).json(error.error);
 };

@@ -9,8 +9,8 @@ export const responseExtenderMiddleware = (
   res: Response,
   next: NextFunction,
 ) => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   res.json_structured = function (
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     response: ApiResponse<unknown, any>,
   ): Response {
     return res.status(response.status).json(response);

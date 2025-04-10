@@ -20,10 +20,10 @@ export interface ResponsePaginated<T> extends BaseResponse {
   meta: {
     limit: number;
     page: number;
-    total: number;
+    totalCount: number;
     filterCount: number;
-    sortField?: string;
-    sortDirection?: string;
+    sort_by: string;
+    sort_dir: string;
   };
   data: T;
   success?: true;

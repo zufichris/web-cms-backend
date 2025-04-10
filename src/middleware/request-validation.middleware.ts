@@ -7,18 +7,19 @@ import { ZodError } from "zod";
 export function requestValidator() {
   return (req: Request, _: Response, next: NextFunction) => {
     try {
+      validateRequestSecurity(req)
       const validated = ValidatedRequestSchema.parse({
         params: req.params,
         body: req.body,
         query: req.query,
         headers: req.headers,
       });
-      req.body = validated.body;
-      req.params = validated.params;
-      req.query = validated.query;
-      req.headers.authorization = validated.headers.authorization;
-      req.headers["content-type"] = validated.headers["content-type"];
-      validateRequestSecurity(req);
+      req.validated = {
+        headers: validated.headers,
+        body: validated.body,
+        params: validated.params,
+        query: validated.query
+      }
       next();
     } catch (error) {
       if (error instanceof ZodError) {
@@ -44,8 +45,7 @@ const validateRequestSecurity = (req: Request) => {
       logger.warn(`Missing security header: ${header}`);
     }
   });
-
   if (req.method !== "GET" && !req.headers["content-type"]) {
-    throw new Error("Missing Content-Type header");
+    req.headers["content-type"] = 'application/json'
   }
 };

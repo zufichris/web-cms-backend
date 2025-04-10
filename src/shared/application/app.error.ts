@@ -31,7 +31,7 @@ export class AppError extends Error {
       status: statusCode,
     };
     if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, this.constructor);
+      Error.captureStackTrace(this, this.constructor)
     }
 
     logger.error(this.toString(), { error: this });
@@ -69,7 +69,7 @@ export class AppError extends Error {
     message?: string,
     options: { code?: string; cause?: Error } = { code: "INTERNAL_ERROR" },
   ) {
-    return new AppError(message ?? "An Unexpected Error Occured", 500, {
+    return new AppError(message ?? "An Unexpected Error Occurred", 500, {
       code: options.code,
       isOperational: false,
       cause: options.cause,
