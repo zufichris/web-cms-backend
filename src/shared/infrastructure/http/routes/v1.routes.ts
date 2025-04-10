@@ -46,6 +46,31 @@ const API_INFO = {
         },
       ],
     },
+    {
+      path: `${BASE_PATH}/users`,
+      method: "GET",
+      description: "List all users",
+    },
+    {
+      path: `${BASE_PATH}/users/:id`,
+      method: "GET",
+      description: "Get user by ID",
+    },
+    {
+      path: `${BASE_PATH}/users`,
+      method: "POST",
+      description: "Create a new user",
+    },
+    {
+      path: `${BASE_PATH}/users/:id`,
+      method: "PUT",
+      description: "Update user by ID",
+    },
+    {
+      path: `${BASE_PATH}/users/:id`,
+      method: "DELETE",
+      description: "Delete user by ID",
+    },
   ],
 };
 
@@ -170,7 +195,5 @@ router.get(`${BASE_PATH}/ping`, (req: Request, res: Response) => {
     ...(echo && { echo }),
   });
 });
-
-
 
 export const routesV1 = router;
