@@ -14,7 +14,7 @@ export class BaseController {
   ): (query: Record<string, unknown>) => QueryParams {
     const schema = createQuerySchema(allowedFields, config);
     return (query: Record<string, unknown>) => {
-      query.fields = Array.isArray(query?.fields ?? []) ? query.fields ?? [] : [query.fields]
+      query.fields = Array.isArray(query.fields) ? query.fields : query.fields ? [query.fields] : [];
       const validData = schema.passthrough().parse(query);
 
       const filtersArray = Object.entries(validData ?? {}).map(([key, value]) => {
