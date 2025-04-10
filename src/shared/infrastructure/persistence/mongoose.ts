@@ -54,24 +54,27 @@ export abstract class MongoBaseRepository<Entity> implements IBaseRepository<Ent
       for (const [field, value] of Object.entries(filters)) {
         if (value && typeof value === "object" && !Array.isArray(value)) {
           for (const [operator, operatorValue] of Object.entries(value)) {
+            const isDate = !isNaN(Date.parse(operatorValue as string));
+            const transformedValue = isDate ? new Date(operatorValue as string) : operatorValue;
+
             switch (operator) {
               case "eq":
-                filterQuery[field] = { $eq: operatorValue };
+                filterQuery[field] = { $eq: transformedValue };
                 break;
               case "contains":
                 filterQuery[field] = { $regex: operatorValue, $options: "i" };
                 break;
               case "gt":
-                filterQuery[field] = { $gt: operatorValue };
+                filterQuery[field] = { $gt: transformedValue };
                 break;
               case "gte":
-                filterQuery[field] = { $gte: operatorValue };
+                filterQuery[field] = { $gte: transformedValue };
                 break;
               case "lt":
-                filterQuery[field] = { $lt: operatorValue };
+                filterQuery[field] = { $lt: transformedValue };
                 break;
               case "lte":
-                filterQuery[field] = { $lte: operatorValue };
+                filterQuery[field] = { $lte: transformedValue };
                 break;
               default:
                 filterQuery[field] = { ...value };
@@ -226,7 +229,7 @@ export abstract class MongoBaseRepository<Entity> implements IBaseRepository<Ent
     try {
       const item = await this.findById(id);
       if (!item) {
-        throw AppError.notFound(`Item With ID ${id} Notfound`);
+        throw AppError.notFound(`Item With ID ${id} not found`);
       }
       const data = {
         ...item,

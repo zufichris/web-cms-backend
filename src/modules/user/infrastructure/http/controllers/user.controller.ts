@@ -19,7 +19,7 @@ export class UserController extends BaseController {
     }
 
     private getContext(req: Request): AuthContext {
-        return req.validated?.user || { name: "Anonymous", role: "Guest", email: "anonymous@example.com", id: randomUUID(), createdAt: Date.now(), updatedAt: Date.now() };
+        return req.validated?.user || { name: "Anonymous", role: "Guest", email: "anonymous@example.com", id: randomUUID(), createdAt: new Date(), updatedAt: new Date() };
     }
 
     create = ApiHandler(async (req: Request, res: Response) => {

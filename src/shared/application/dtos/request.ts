@@ -11,23 +11,20 @@ export function createQuerySchema(
     limit: z.coerce.number().int().max(config?.maxLimit ?? 100).optional().default(10),
     page: z.coerce.number().optional().default(1),
     sort_by: z.coerce.string().optional().default("createdAt"),
-    sort_dir: z.number().int()
+    sort_dir: z.number()
       .or(z.enum(['asc', 'desc']))
       .optional()
       .default('asc')
-      .transform(v => {
-        if (Number(v) >= 0) {
-          return 1;
-        } else if (Number(v) < 0) {
-          return -1;
+      .transform((v:string|number) => {
+        if (typeof v === "number") {
+          return v >= 0 ? 1 : -1;
         }
-
         if (v === "asc") {
           return 1;
-        } else if (v === "desc") {
+        }
+        if (v === "desc") {
           return -1;
         }
-
         return 1;
       }),
     fields: z.array(z.string().or(z.number())).optional().default(allowedFields),
