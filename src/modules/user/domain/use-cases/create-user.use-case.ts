@@ -15,6 +15,10 @@ export class CreateUserUseCase extends BaseUseCase<CreateUserDto, User, AuthCont
     }
     async beforeExecute(input: User): Promise<void> {
         CreateUserValidationSchema.parse(input)
+        const entity = await this.userRepository.findById(input.id).catch(_error => { })
+        if (entity) {
+            throw AppError.conflict(`email ${input.email} taken, please try another email`)
+        }
     }
 
     async execute(input: CreateUserDto, context?: AuthContext): Promise<UsecaseResult<User>> {
@@ -24,10 +28,6 @@ export class CreateUserUseCase extends BaseUseCase<CreateUserDto, User, AuthCont
             role: UserRole.USER,
             password: hashedPassword,
             isActive: true,
-        }
-        const exists = await this.userRepository.findByEmail(input.email).catch(_ => { })
-        if (exists) {
-            throw AppError.conflict("email taken, please try another email")
         }
         const entity = await this.userRepository.create(data);
         logger.info(`[${this.constructor.name}] Created User`, { id: entity.id, context });
