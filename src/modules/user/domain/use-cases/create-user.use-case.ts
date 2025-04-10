@@ -13,7 +13,7 @@ export class CreateUserUseCase extends BaseUseCase<CreateUserDto, User, AuthCont
     constructor(private readonly userRepository: IUserRepository) {
         super()
     }
-    async beforeExecute(input: User): Promise<void> {
+    async beforeExecute(input: CreateUserDto): Promise<void> {
         CreateUserValidationSchema.parse(input);
         const entity = await this.userRepository.findByEmail(input.email).catch(_error => { });
         if (entity) {
