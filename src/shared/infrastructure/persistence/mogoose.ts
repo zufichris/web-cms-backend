@@ -52,8 +52,10 @@ export abstract class MongoBaseRepository<Entity> implements IBaseRepository<Ent
     const filterQuery = {} as Record<string, object>;
     if (filters) {
       for (const [field, value] of Object.entries(filters)) {
-        if (value) {
-          filterQuery[field] = value
+        if (value && typeof value === "object" && !Array.isArray(value)) {
+          filterQuery[field] = { ...value };
+        } else if (value !== undefined) {
+          filterQuery[field] = { $eq: value };
         }
       }
     }
