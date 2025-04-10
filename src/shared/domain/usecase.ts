@@ -17,7 +17,7 @@ interface IBaseUseCase<
   TOutput = unknown,
   TContext = void,
 > {
-  beforeExecute?(input?: TInput, context?: TContext): Promise<void> | void;
+  beforeExecute?(input?: TInput, context?: TContext): void | Promise<void>;
   execute(input: TInput, context?: TContext): Promise<UsecaseResult<TOutput>>;
   afterExecute?(
     result?: UsecaseResult<TOutput>,
