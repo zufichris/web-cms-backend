@@ -6,6 +6,7 @@ import {
 } from '@app/modules/user/domain/use-cases';
 import { UpdateUserDto } from '@app/modules/user/application/dtos';
 import { logger } from '@app/utils/logger';
+import { randomUUID } from 'crypto';
 export class UserController extends BaseController {
     constructor(
         private readonly createUserUseCase: CreateUserUseCase,
@@ -18,7 +19,7 @@ export class UserController extends BaseController {
     }
 
     private getContext(req: Request): AuthContext {
-        return req.validated?.user;
+        return req.validated?.user || { name: "Anonymous", role: "Guest", id: randomUUID(), createdAt: Date.now(), updatedAt: Date.now() };
     }
 
     create = ApiHandler(async (req: Request, res: Response) => {
@@ -30,7 +31,16 @@ export class UserController extends BaseController {
     getById = ApiHandler(async (req: Request, res: Response) => {
         const result = await this.getUserUseCase.run(req.params.id, this.getContext(req));
         if (result.success) logger.info(`Controller: Retrieved User`, { id: req.params.id });
-        res.status(result.success ? 200 : 404).json(result);
+        res.json_structured(result)
+    });
+
+    getLoggedInUser = ApiHandler(async (req: Request, res: Response) => {
+        res.json_structured({
+            success: true,
+            message: "User Retrieved Successfully",
+            data: this.getContext(req),
+            status: 200
+        })
     });
 
     update = ApiHandler(async (req: Request, res: Response) => {
