@@ -9,6 +9,8 @@ export function createUserRouter(controller: UserController): Router {
     router.route('/')
         .get(controller.getAll)
         .post(controller.create);
+    router.route("/me")
+        .get(controller.getLoggedInUser)
     router.route('/:id')
         .get(controller.getById)
         .patch(controller.update)
