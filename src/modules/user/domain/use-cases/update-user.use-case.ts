@@ -13,8 +13,13 @@ export class UpdateUserUseCase extends BaseUseCase<UpdateUserDto, User, AuthCont
         super()
     }
 
-    async beforeExecute(input: UpdateUserDto): Promise<void> {
+    async beforeExecute(input: UpdateUserDto, context: AuthContext): Promise<void> {
         UpdateUserValidationSchemaBody.parse(input)
+        const entity = await this.userRepository.findById(input.id).catch(_error => { })
+        if (!entity) {
+            logger.warn(`[${this.constructor.name}] User not found`, { id: input.id, context });
+            throw AppError.notFound(`User with id '${input.id}' not found`);
+        }
     }
     async execute(input: UpdateUserDto, context?: AuthContext): Promise<UsecaseResult<User>> {
         const { id, ...updateData } = input;
