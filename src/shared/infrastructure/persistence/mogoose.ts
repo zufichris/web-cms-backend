@@ -121,6 +121,9 @@ export abstract class MongoBaseRepository<Entity> implements IBaseRepository<Ent
         `Duplicate value for unique field: ${Object.keys(error.keyValue).join(", ")}`,
       );
     }
+    if (error instanceof AppError) {
+      throw error
+    }
     logger.error("Unexpected database error", error);
     throw AppError.internal();
   }
