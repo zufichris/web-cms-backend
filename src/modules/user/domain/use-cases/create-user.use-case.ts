@@ -14,10 +14,10 @@ export class CreateUserUseCase extends BaseUseCase<CreateUserDto, User, AuthCont
         super()
     }
     async beforeExecute(input: User): Promise<void> {
-        CreateUserValidationSchema.parse(input)
-        const entity = await this.userRepository.findById(input.id).catch(_error => { })
+        CreateUserValidationSchema.parse(input);
+        const entity = await this.userRepository.findByEmail(input.email).catch(_error => { });
         if (entity) {
-            throw AppError.conflict(`email ${input.email} taken, please try another email`)
+            throw AppError.conflict(`Email ${input.email} is already taken, please try another email.`);
         }
     }
 
