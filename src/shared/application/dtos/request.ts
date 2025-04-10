@@ -48,7 +48,7 @@ export const ValidatedRequestSchema = z.object({
     .passthrough(),
 });
 
-
+export const ParamIdValidationSchema = z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid ID format')
 
 export type ValidatedRequest = z.infer<typeof ValidatedRequestSchema>
 export type QueryParams = {
