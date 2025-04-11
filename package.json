@@ -15,7 +15,7 @@
         "lint": "tsx scripts/lint.ts",
         "format": "tsx scripts/format.ts",
         "cleanup": "tsx scripts/cleanup.ts",
-        "generate:module": "tsx scripts/generate-module.ts"
+        "generate:module": "tsx scripts/generate"
     },
     "repository": {
         "type": "git",
