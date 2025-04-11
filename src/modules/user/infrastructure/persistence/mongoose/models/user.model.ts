@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document, Model } from 'mongoose';
+import { Schema, Document, Model,models,model } from 'mongoose';
 import { User } from '@app/modules/user/domain/entities';
 import { UserRole } from '@app/modules/user/domain';
 
@@ -27,7 +27,12 @@ const userSchema = new Schema<UserDocument>({
             return ret;
         }
     },
-    toJSON: { transform: (_, ret) => { ret.id = ret._id.toString(); delete ret._id; return ret; } }
+    toJSON: { transform: (_, ret) => {
+        ret.id = ret._id.toString();
+        delete ret._id;
+        delete ret.password;
+        return ret;
+    } }
 });
 
-export const UserModel: Model<UserDocument> = mongoose.models.User || mongoose.model<UserDocument>('User', userSchema);
+export const UserModel: Model<UserDocument> = models.User || model<UserDocument>('User', userSchema);
