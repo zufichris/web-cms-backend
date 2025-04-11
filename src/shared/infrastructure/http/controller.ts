@@ -1,7 +1,10 @@
 import {
+  AuthContext,
   createQuerySchema,
   QueryParams,
 } from "@app/shared/application/dtos/request";
+import { randomUUID } from "crypto";
+import { Request } from 'express'
 
 export class BaseController {
   constructor() { }
@@ -39,5 +42,10 @@ export class BaseController {
         filters: filters
       });
     };
+  }
+  protected getContext(req: Request): AuthContext {
+    return req.validated?.user || {
+      name: "Anonymous", role: "Guest", email: "anonymous@example.com", id: randomUUID(), createdAt: new Date(), updatedAt: new Date()
+    }
   }
 }
