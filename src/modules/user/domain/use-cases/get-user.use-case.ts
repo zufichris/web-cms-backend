@@ -1,6 +1,6 @@
 
 import { User } from '@app/modules/user/domain/entities';
-import { AppError, BaseUseCase } from '@app/shared';
+import { AppError, BaseUseCase, ParamIdValidationSchema } from '@app/shared';
 import { AuthContext } from '@app/shared';
 import { UsecaseResult } from '@app/shared';
 import { logger } from '@app/utils/logger';
@@ -10,6 +10,9 @@ export class GetUserUseCase extends BaseUseCase<string, User, AuthContext> {
     constructor(private readonly userRepository: IUserRepository) {
         super()
     }
+    async beforeExecute(id: string): Promise<void> {
+            ParamIdValidationSchema.parse(id)
+        }
     async execute(id: string, context?: AuthContext): Promise<UsecaseResult<User>> {
         try {
             const entity = await this.userRepository.findById(id).catch(_error => { })
