@@ -1,12 +1,11 @@
 
 import { Request, Response } from 'express';
-import { ApiHandler, AuthContext, BaseController } from '@app/shared';
+import { ApiHandler, BaseController } from '@app/shared';
 import {
     CreateUserUseCase, GetUserUseCase, UpdateUserUseCase, DeleteUserUseCase, QueryUserUseCase
 } from '@app/modules/user/domain/use-cases';
 import { UpdateUserDto } from '@app/modules/user/application/dtos';
 import { logger } from '@app/utils/logger';
-import { randomUUID } from 'crypto';
 export class UserController extends BaseController {
     constructor(
         private readonly createUserUseCase: CreateUserUseCase,
@@ -16,10 +15,6 @@ export class UserController extends BaseController {
         private readonly queryUserUseCase: QueryUserUseCase
     ) {
         super();
-    }
-
-    private getContext(req: Request): AuthContext {
-        return req.validated?.user || { name: "Anonymous", role: "Guest", email: "anonymous@example.com", id: randomUUID(), createdAt: new Date(), updatedAt: new Date() };
     }
 
     create = ApiHandler(async (req: Request, res: Response) => {
