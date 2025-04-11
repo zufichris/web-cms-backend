@@ -1,4 +1,3 @@
-import { initUserModule } from "@app/modules/user";
 import express from "express";
 import { Request, Response } from "express";
 import os from "os";
@@ -82,9 +81,6 @@ function formatUptime(seconds: number): string {
 
   return `${days}d ${hours}h ${minutes}m ${secs}s`;
 }
-
-router.use("/v1/users", initUserModule());
-
 
 router.get(BASE_PATH, (_: Request, res: Response) => {
   requestsServed++;

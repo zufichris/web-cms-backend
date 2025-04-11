@@ -1,6 +1,6 @@
 
 import { Request, Response } from 'express';
-import { ApiHandler, BaseController } from '@app/shared';
+import { ApiHandler, BaseController} from '@app/shared';
 import {
     CreateUserUseCase, GetUserUseCase, UpdateUserUseCase, DeleteUserUseCase, QueryUserUseCase
 } from '@app/modules/user/domain/use-cases';

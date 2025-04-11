@@ -7,7 +7,10 @@ import { randomUUID } from "crypto";
 import { Request } from 'express'
 
 export class BaseController {
-  constructor() { }
+  constructor() {
+    this.getQuery = this.getQuery.bind(this)
+    this.getContext = this.getContext.bind(this)
+  }
   protected getQuery(
     allowedFields: [string, ...string[]],
     config?: {

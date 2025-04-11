@@ -12,7 +12,7 @@ import {
 } from "@app/middleware";
 import { createServer } from "http";
 import { logger } from "./utils";
-import { routesV1 } from "./shared/infrastructure/http/routes/v1.routes";
+import { routes } from "./shared/infrastructure/http/routes";
 
 class App {
   private app: Express;
@@ -45,7 +45,7 @@ class App {
     this.app.use(errorMiddleware);
   }
   private initApiRoutes(): void {
-    this.app.use("/api", routesV1);
+    this.app.use("/api", routes);
   }
 
   private initDatabaseConnection(): void {
