@@ -10,7 +10,11 @@ const envValidator = z.object({
     .default(5000),
   in_prod: z.boolean().optional().default(false),
   db_uri: z.string({
+    message: "missing database uri",
     required_error: "MongoDB URI is required",
+  }),
+  jwt_secret: z.string({
+    required_error: "missing jwt secret",
   }),
 });
 
@@ -18,6 +22,7 @@ const parsedEnv = envValidator.safeParse({
   in_prod: process.env.NODE_ENV === "prod",
   port: process.env.PORT ? parseInt(process.env.PORT) : undefined,
   db_uri: process.env.DB_URI,
+  jwt_secret: process.env.JWT_SECRET,
 });
 
 if (!parsedEnv.success) {
