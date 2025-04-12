@@ -109,7 +109,7 @@ export class AuthService {
         const { currentPassword, newPassword } = ChangePasswordSchema.parse(data)
 
         const user = await this.userRepository.findById(userId).catch(_err => { })
-        logger.todo("Add getPassword(userId) tin userRepository")
+        logger.todo("Add getPassword(userId) in userRepository")
         if (!user) {
             throw AppError.notFound("User not found");
         }
