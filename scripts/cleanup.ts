@@ -8,7 +8,7 @@ const rl = readline.createInterface({
   output: process.stdout,
 });
 
-const pathsToRemove = ["logs", "build", "node_modules", "package-lock.json"];
+const pathsToRemove = ["logs", "build", "node_modules", "package-lock.json\n"];
 
 async function confirmRemoval(): Promise<boolean> {
   return new Promise((resolve) => {
