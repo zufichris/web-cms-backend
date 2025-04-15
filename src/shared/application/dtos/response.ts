@@ -25,7 +25,7 @@ export interface ResponsePaginated<T> extends BaseResponse {
     sort_by: string;
     sort_dir: string;
   };
-  data: T;
+  data: T[];
   success?: true;
 }
 

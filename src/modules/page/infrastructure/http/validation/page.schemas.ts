@@ -19,7 +19,7 @@ const PageCoreSchema = z.object({
     ).nonempty("Page Requires atleast one Section"),
     template: z.string().optional(),
     status: PageStatusEnum.default("DRAFT"),
-    metadata:z.record(z.string(),z.any()).optional(),
+    metadata: z.record(z.string(), z.any()).optional(),
 });
 
 export const CreatePageValidationSchema = PageCoreSchema.strict();

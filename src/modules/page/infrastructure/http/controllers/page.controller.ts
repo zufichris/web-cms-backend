@@ -23,7 +23,7 @@ export class PageController extends BaseController {
 
     create = ApiHandler(async (req: Request, res: Response) => {
         const result = await this.createPageUseCase.run(req.body, this.getContext(req));
-        if (result.success) logger.info('Controller: Created Page', { id: result.data.id });
+        if (result.success) logger.info('Controller: Created Page', { id: result.data });
         res.json_structured(result);
     });
 

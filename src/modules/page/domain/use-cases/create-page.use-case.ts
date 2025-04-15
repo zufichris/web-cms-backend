@@ -12,14 +12,14 @@ export class CreatePageUseCase extends BaseUseCase<CreatePageDto, Page, AuthCont
     }
 
     async beforeExecute(input: CreatePageDto): Promise<void> {
-        CreatePageValidationSchema.parse(input);
+        CreatePageValidationSchema.parse(input)
         const exists = await this.pageRepository.findOne({ filters: { slug: input.slug } }).catch(_ => { })
         if (exists) {
             throw AppError.conflict(`Page with slug "${input.slug}" already exists`)
         }
     }
 
-    async execute(input: CreatePageDto, context?: AuthContext): Promise<UsecaseResult<Page>> {
+    async execute(input: CreatePageDto, _context?: AuthContext): Promise<UsecaseResult<Page>> {
         const page = await this.pageRepository.create(input as unknown as Page);
         const sections = await this.pageRepository.addSections(page.id, input.sections)
         page.sections = sections

@@ -1,6 +1,6 @@
 
 import { Page } from '@app/modules/page/domain/entities';
-import { AuthContext, BaseUseCase, QueryParams } from '@app/shared';
+import { AuthContext, BaseUseCase, QueryParams, ResponsePaginated } from '@app/shared';
 import { UsecaseResult } from '@app/shared';
 import { logger } from '@app/utils/logger';
 import { IPageRepository } from '../repositories';
@@ -25,6 +25,6 @@ export class QueryPageUseCase extends BaseUseCase<QueryParams, Page[], AuthConte
                 sort_by: input.options?.sortField ?? "createdAt",
                 sort_dir: (input.options?.sortDir ?? -1) > 0 ? "asc" : "desc"
             }
-        };
+        }as ResponsePaginated<Page>
     }
 }

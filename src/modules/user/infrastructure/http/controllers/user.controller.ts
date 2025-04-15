@@ -19,7 +19,7 @@ export class UserController extends BaseController {
 
     create = ApiHandler(async (req: Request, res: Response) => {
         const result = await this.createUserUseCase.run(req.body, this.getContext(req));
-        if (result.success) logger.info(`Controller: Created User`, { id: result.data.id });
+        if (result.success) logger.info(`Controller: Created User`, { id: result.data });
         res.json_structured(result);
     });
 
