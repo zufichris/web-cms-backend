@@ -7,15 +7,15 @@
         "@app": "build/src"
     },
     "scripts": {
-        "build": "tsx scripts/build.ts",
-        "start": "tsx scripts/build.ts && node -r module-alias/register build/src/index.js",
+        "build": "npx tsx scripts/build.ts",
+        "start": "npx tsx scripts/build.ts && node -r module-alias/register build/src/index.js",
         "dev": "nodemon --exec 'tsx' src/index.ts",
-        "seed": "tsx scripts/seed.ts",
-        "test": "tsx scripts/run-tests.ts",
-        "lint": "tsx scripts/lint.ts",
-        "format": "tsx scripts/format.ts",
-        "cleanup": "tsx scripts/cleanup.ts",
-        "generate:module": "tsx scripts/generate"
+        "seed": "npx tsx scripts/seed.ts",
+        "test": "npx tsx scripts/run-tests.ts",
+        "lint": "npx tsx scripts/lint.ts",
+        "format": "npx tsx scripts/format.ts",
+        "cleanup": "npx tsx scripts/cleanup.ts",
+        "generate:module": "npx tsx scripts/generate"
     },
     "repository": {
         "type": "git",
