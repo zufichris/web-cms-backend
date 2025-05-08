@@ -10,7 +10,7 @@ import {
 } from '@app/modules/page/domain/use-cases';
 import { logger } from '@app/utils/logger';
 import { AddPageSectionUseCase } from '@app/modules/page/domain/use-cases/add-section.use-case';
-import { AddContentBlockDto, AddPageSectionDto } from '@app/modules/page/application';
+import { AddContentBlockDto, AddPageSectionDto, UpdateContentBlockDto } from '@app/modules/page/application';
 import { AddBlockContentUseCase } from '@app/modules/page/domain/use-cases/add-block.use-case';
 import { GetPageSectionsUseCase } from '@app/modules/page/domain/use-cases/get-sections.use-case';
 import { DeletePageSectionUseCase } from '@app/modules/page/domain/use-cases/delete-section.use-case';
@@ -81,22 +81,20 @@ export class PageController extends BaseController {
 
     getSections = ApiHandler(async (req: Request, res: Response) => {
         const pageId = req.params.pageId
-        const data = {
-            pageId,
-            ...(req.validated.body as Record<string, unknown>)
-        } as AddPageSectionDto
-        const result = await this.getSectionsUseCase.run(data, this.getContext(req));
+
+        const result = await this.getSectionsUseCase.run({
+            pageId
+        }, this.getContext(req));
         if (result.success) logger.info('Controller: Added section', { id: result.data });
         res.json_structured(result);
     })
 
     deleteSection = ApiHandler(async (req: Request, res: Response) => {
-        const pageId = req.params.pageId
-        const data = {
-            pageId,
-            ...(req.validated.body as Record<string, unknown>)
-        } as AddPageSectionDto
-        const result = await this.deleteSectionUseCase.run(data, this.getContext(req));
+        const sectionId = req.params.sectionId
+
+        const result = await this.deleteSectionUseCase.run({
+            sectionId
+        }, this.getContext(req));
         if (result.success) logger.info('Controller: Added section', { id: result.data });
         res.json_structured(result);
     });
@@ -117,7 +115,7 @@ export class PageController extends BaseController {
         const data = {
             sectionId,
             ...(req.validated.body as Record<string, unknown>),
-        } as AddContentBlockDto
+        } as UpdateContentBlockDto
         const result = await this.updateContentBlockUseCase.run(data, this.getContext(req));
         if (result.success) logger.info('Controller: Added block', { id: result.data });
         res.json_structured(result);
