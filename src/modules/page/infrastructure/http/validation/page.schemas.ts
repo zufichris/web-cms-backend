@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { ParamIdValidationSchema } from '@app/shared';
-import { ContentBlockSchema, PageStatusEnum, SEODataSchema } from '@app/modules/page/domain';
+import { ContentBlockSchema, PageStatusEnum, SectionSchema, SEODataSchema } from '@app/modules/page/domain';
 
 const PageCoreSchema = z.object({
     title: z.string().min(1, "Title is required"),
@@ -16,7 +16,7 @@ const PageCoreSchema = z.object({
                 .regex(/^[a-z0-9-]+$/, "Section slug must contain only lowercase letters, numbers, and hyphens"),
             blocks: z.array(ContentBlockSchema),
         })
-    ).nonempty("Page Requires atleast one Section"),
+    ).optional().default([]),
     template: z.string().optional(),
     status: PageStatusEnum.default("DRAFT"),
     metadata: z.record(z.string(), z.any()).optional(),
@@ -26,4 +26,22 @@ export const CreatePageValidationSchema = PageCoreSchema.strict();
 export const UpdatePageValidationSchemaBody = PageCoreSchema.partial().extend({
     id: ParamIdValidationSchema
 }).strict();
+export const AddPageSectionValidationSchema = SectionSchema.omit({
+    id: true
+}).extend({
+    name: z.coerce.string({
+        invalid_type_error: "Section Name must be a string",
+        required_error: "Section Name is Required"
+    }),
+    slug: z.coerce.string({
+        invalid_type_error: "Section slug must be a string",
+        required_error: "Section slug is Required"
+    }).toLowerCase(),
+    blocks: z.array(ContentBlockSchema).optional().default([]),
+    pageId: ParamIdValidationSchema
+})
 
+export const AddContentBlockValidationSchema = z.object({
+    sectionId: ParamIdValidationSchema,
+    block: ContentBlockSchema
+})

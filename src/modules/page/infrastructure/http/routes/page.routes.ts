@@ -14,5 +14,11 @@ export function createPageRouter(controller: PageController): Router {
         .patch(controller.update)
         .delete(controller.delete);
 
+    router.route("/:pageId/sections")
+        .post(controller.addSection)
+
+    router.route("/:pageId/sections/:sectionId/blocks")
+        .post(controller.addContentBlock)
+
     return router;
 }

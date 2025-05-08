@@ -1,6 +1,6 @@
 import { Model, Document } from 'mongoose';
 import { IPageRepository } from '@app/modules/page/domain/repositories';
-import { Page, Section } from '@app/modules/page/domain/entities';
+import { ContentBlock, Page, Section } from '@app/modules/page/domain/entities';
 import { MongoBaseRepository } from '@app/shared';
 import { AppError } from '@app/shared';
 import { logger } from '@app/utils';
@@ -33,4 +33,50 @@ export class MongoPageRepository extends MongoBaseRepository<Page> implements IP
         result.map(r => r.toObject())
         return result
     }
+    async findSection(slug: string): Promise<Section> {
+        try {
+            const result = await this.sectionModel.findOne({
+                slug
+            })
+            if (!result?.toObject()) {
+                throw AppError.notFound(`Section with slug ${slug} not found`)
+            }
+            return result.toObject() as Section
+        } catch (error) {
+            this.handleError(error)
+        }
+    }
+    async addSection(data: Partial<Section>): Promise<Section> {
+        try {
+            const result = await this.sectionModel.create(data)
+            return result.toObject() as Section
+        } catch (error) {
+            this.handleError(error)
+        }
+    }
+    async updateSection(sectionId: string, data: Partial<Section>): Promise<Section> {
+        try {
+            let blocks: ContentBlock[] | undefined
+
+            if (data.blocks) {
+                const section = await this.sectionModel.findById(sectionId)
+                if (!section?.toObject()) {
+                    throw AppError.notFound("Section Not Found")
+                }
+                blocks = [...section?.blocks ?? [], ...data.blocks]
+
+            }
+            const result = await this.sectionModel.findByIdAndUpdate(sectionId, { data, blocks }, {
+                new: true
+            })
+            if (!result?.toObject()) {
+                throw AppError.notFound("Section Not Found")
+            }
+            return result?.toObject() as Section
+        } catch (error) {
+            this.handleError(error)
+        }
+    }
+
+
 }

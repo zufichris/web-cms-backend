@@ -9,6 +9,9 @@ import {
     QueryPageUseCase
 } from '@app/modules/page/domain/use-cases';
 import { logger } from '@app/utils/logger';
+import { AddPageSectionUseCase } from '@app/modules/page/domain/use-cases/add-section.use-case';
+import { AddContentBlockDto, AddPageSectionDto } from '@app/modules/page/application';
+import { AddBlockContentUseCase } from '@app/modules/page/domain/use-cases/add-block.use-case';
 
 export class PageController extends BaseController {
     constructor(
@@ -16,7 +19,9 @@ export class PageController extends BaseController {
         private readonly getPageUseCase: GetPageUseCase,
         private readonly updatePageUseCase: UpdatePageUseCase,
         private readonly deletePageUseCase: DeletePageUseCase,
-        private readonly queryPageUseCase: QueryPageUseCase
+        private readonly queryPageUseCase: QueryPageUseCase,
+        private readonly addSectionUseCase: AddPageSectionUseCase,
+        private readonly addContentBlockUseCase: AddBlockContentUseCase
     ) {
         super();
     }
@@ -54,4 +59,27 @@ export class PageController extends BaseController {
         const result = await this.queryPageUseCase.run(query, this.getContext(req));
         res.json_structured(result);
     });
+
+    addSection = ApiHandler(async (req: Request, res: Response) => {
+        const pageId = req.params.pageId
+        const data = {
+            pageId,
+            ...(req.validated.body as Record<string, unknown>)
+        } as AddPageSectionDto
+        const result = await this.addSectionUseCase.run(data, this.getContext(req));
+        if (result.success) logger.info('Controller: Added section', { id: result.data });
+        res.json_structured(result);
+    });
+
+    addContentBlock = ApiHandler(async (req: Request, res: Response) => {
+        const sectionId = req.params.sectionId
+        const data = {
+            sectionId,
+            block: (req.validated.body as Record<string, unknown>)
+        } as AddContentBlockDto
+        const result = await this.addContentBlockUseCase.run(data, this.getContext(req));
+        if (result.success) logger.info('Controller: Added block', { id: result.data });
+        res.json_structured(result);
+    });
+
 }

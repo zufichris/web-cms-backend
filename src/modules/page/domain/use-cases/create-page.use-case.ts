@@ -21,8 +21,6 @@ export class CreatePageUseCase extends BaseUseCase<CreatePageDto, Page, AuthCont
 
     async execute(input: CreatePageDto, _context?: AuthContext): Promise<UsecaseResult<Page>> {
         const page = await this.pageRepository.create(input as unknown as Page);
-        const sections = await this.pageRepository.addSections(page.id, input.sections)
-        page.sections = sections
         return {
             success: true,
             message: 'Page created successfully.',
