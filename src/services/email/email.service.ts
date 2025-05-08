@@ -12,12 +12,6 @@ export class EmailService {
     this.transporter = nodemailer.createTransport({
       service: 'gmail',
       secure: false,
-      auth: {
-        // user: 'genzoutcast0@gmail.com',
-        // pass: '68205-Zufi',
-        clientId: '64898343756-b35i3i7e82el14csepngun21o8t2p9a0.apps.googleusercontent.com',
-        clientSecret: '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',
-      }
     });
 
     this.templates = this.initializeTemplates();
