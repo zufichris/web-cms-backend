@@ -20,7 +20,7 @@ const envValidator = z.object({
 
 const parsedEnv = envValidator.safeParse({
   in_prod: process.env.NODE_ENV === "prod",
-  port: process.env.PORT ? parseInt(process.env.PORT) : undefined,
+  // port: process.env.PORT ? parseInt(process.env.PORT) : undefined,
   db_uri: process.env.DB_URI,
   jwt_secret: process.env.JWT_SECRET,
 });
