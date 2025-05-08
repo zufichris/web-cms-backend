@@ -9,4 +9,6 @@ export interface IPageRepository extends IBaseRepository<Page> {
     findSection(id: string): Promise<Section>
     addSection(data: Partial<Section>): Promise<Section>
     updateSection(sectionId: string, data: Partial<Section>): Promise<Section>
+    getSections(pageId:string):Promise<Section[]>
+    deleteSection(sectionId:string):Promise<boolean>
 }

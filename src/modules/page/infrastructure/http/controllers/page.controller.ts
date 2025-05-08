@@ -12,6 +12,10 @@ import { logger } from '@app/utils/logger';
 import { AddPageSectionUseCase } from '@app/modules/page/domain/use-cases/add-section.use-case';
 import { AddContentBlockDto, AddPageSectionDto } from '@app/modules/page/application';
 import { AddBlockContentUseCase } from '@app/modules/page/domain/use-cases/add-block.use-case';
+import { GetPageSectionsUseCase } from '@app/modules/page/domain/use-cases/get-sections.use-case';
+import { DeletePageSectionUseCase } from '@app/modules/page/domain/use-cases/delete-section.use-case';
+import { DeleteBlockContentUseCase } from '@app/modules/page/domain/use-cases/delete-block.use-case';
+import { UpdateBlockContentUseCase } from '@app/modules/page/domain/use-cases/update-block.use-case';
 
 export class PageController extends BaseController {
     constructor(
@@ -21,7 +25,11 @@ export class PageController extends BaseController {
         private readonly deletePageUseCase: DeletePageUseCase,
         private readonly queryPageUseCase: QueryPageUseCase,
         private readonly addSectionUseCase: AddPageSectionUseCase,
-        private readonly addContentBlockUseCase: AddBlockContentUseCase
+        private readonly getSectionsUseCase: GetPageSectionsUseCase,
+        private readonly deleteSectionUseCase: DeletePageSectionUseCase,
+        private readonly addContentBlockUseCase: AddBlockContentUseCase,
+        private readonly deleteContentBlockUseCase: DeleteBlockContentUseCase,
+        private readonly updateContentBlockUseCase: UpdateBlockContentUseCase
     ) {
         super();
     }
@@ -71,6 +79,28 @@ export class PageController extends BaseController {
         res.json_structured(result);
     });
 
+    getSections = ApiHandler(async (req: Request, res: Response) => {
+        const pageId = req.params.pageId
+        const data = {
+            pageId,
+            ...(req.validated.body as Record<string, unknown>)
+        } as AddPageSectionDto
+        const result = await this.getSectionsUseCase.run(data, this.getContext(req));
+        if (result.success) logger.info('Controller: Added section', { id: result.data });
+        res.json_structured(result);
+    })
+
+    deleteSection = ApiHandler(async (req: Request, res: Response) => {
+        const pageId = req.params.pageId
+        const data = {
+            pageId,
+            ...(req.validated.body as Record<string, unknown>)
+        } as AddPageSectionDto
+        const result = await this.deleteSectionUseCase.run(data, this.getContext(req));
+        if (result.success) logger.info('Controller: Added section', { id: result.data });
+        res.json_structured(result);
+    });
+
     addContentBlock = ApiHandler(async (req: Request, res: Response) => {
         const sectionId = req.params.sectionId
         const data = {
@@ -78,6 +108,28 @@ export class PageController extends BaseController {
             ...(req.validated.body as Record<string, unknown>),
         } as AddContentBlockDto
         const result = await this.addContentBlockUseCase.run(data, this.getContext(req));
+        if (result.success) logger.info('Controller: Added block', { id: result.data });
+        res.json_structured(result);
+    });
+
+    updateContentBlock = ApiHandler(async (req: Request, res: Response) => {
+        const sectionId = req.params.sectionId
+        const data = {
+            sectionId,
+            ...(req.validated.body as Record<string, unknown>),
+        } as AddContentBlockDto
+        const result = await this.updateContentBlockUseCase.run(data, this.getContext(req));
+        if (result.success) logger.info('Controller: Added block', { id: result.data });
+        res.json_structured(result);
+    });
+
+    deleteContentBlock = ApiHandler(async (req: Request, res: Response) => {
+        const sectionId = req.params.sectionId
+        const data = {
+            sectionId,
+            ...(req.validated.body as Record<string, unknown>),
+        } as AddContentBlockDto
+        const result = await this.deleteContentBlockUseCase.run(data, this.getContext(req));
         if (result.success) logger.info('Controller: Added block', { id: result.data });
         res.json_structured(result);
     });

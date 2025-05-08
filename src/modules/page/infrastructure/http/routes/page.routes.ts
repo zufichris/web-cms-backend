@@ -16,9 +16,17 @@ export function createPageRouter(controller: PageController): Router {
 
     router.route("/:pageId/sections")
         .post(controller.addSection)
+        .get(controller.getSections)
+
+    router.route("/:pageId/sections/:sectionId")
+        .delete(controller.deleteSection)
 
     router.route("/:pageId/sections/:sectionId/blocks")
         .post(controller.addContentBlock)
+
+    router.route("/:pageId/sections/:sectionId/blocks/:blockId")
+        .post(controller.updateContentBlock)
+        .delete(controller.deleteContentBlock)
 
     return router;
 }

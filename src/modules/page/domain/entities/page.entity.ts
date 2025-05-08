@@ -119,6 +119,7 @@ export const CustomBlockDataSchema = z.object({
     type: z.literal("custom"),
     componentKey: z.string(),
     data: z.record(z.any()),
+    id:z.string()
 });
 
 export const ContentBlockSchema = z.discriminatedUnion("type", [

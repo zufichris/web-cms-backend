@@ -72,6 +72,28 @@ export class MongoPageRepository extends MongoBaseRepository<Page> implements IP
             this.handleError(error)
         }
     }
-
-
+    async getSections(pageId: string): Promise<Section[]> {
+        try {
+            const result = await this.sectionModel.find({
+                pageId
+            })
+            const sections = result.map(r => {
+                if (r.toObject()) {
+                    const blocks = Object.fromEntries(r.toObject().blocks as unknown as Map<string, ContentBlock>)
+                    return { ...r.toObject(), blocks } as Section
+                }
+            }).filter(Boolean) as Section[]
+            return sections
+        } catch (error) {
+            this.handleError(error)
+        }
+    }
+    async deleteSection(sectionId: string): Promise<boolean> {
+        try {
+            await this.sectionModel.findByIdAndDelete(sectionId)
+            return true
+        } catch (error) {
+            this.handleError(error)
+        }
+    }
 }

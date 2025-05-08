@@ -49,3 +49,12 @@ export const AddContentBlockValidationSchema = z.object({
         invalid_type_error: "Block key must be a string"
     })
 })
+
+export const UpdateContentBlockValidationSchema = z.object({
+    sectionId: ParamIdValidationSchema,
+    block: ContentBlockSchema,
+    key: z.coerce.string({
+        required_error: "Block key is required",
+        message: "Block key is required"
+    })
+})
