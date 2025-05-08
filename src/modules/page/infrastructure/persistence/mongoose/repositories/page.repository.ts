@@ -1,6 +1,6 @@
 import { Model, Document } from 'mongoose';
 import { IPageRepository } from '@app/modules/page/domain/repositories';
-import { Page, Section } from '@app/modules/page/domain/entities';
+import { ContentBlock, Page, Section } from '@app/modules/page/domain/entities';
 import { MongoBaseRepository } from '@app/shared';
 import { AppError } from '@app/shared';
 import { logger } from '@app/utils';
@@ -17,7 +17,13 @@ export class MongoPageRepository extends MongoBaseRepository<Page> implements IP
             throw AppError.notFound('Page not found');
         }
         const sections = await this.sectionModel.find({ pageId: item.id })
-        const data = { ...item.toObject(), sections: sections.map(s => s.toObject()) }
+        const data = {
+            ...item.toObject(), sections: sections.map(s => ({
+                ...s.toObject(),
+                blocks: Object.fromEntries(s.blocks as unknown as Map<string, ContentBlock>)
+            }))
+        }
+        logger.debug("Page", data)
         return data;
     }
     async getAllSections(pageId: string): Promise<Section[]> {
@@ -33,15 +39,14 @@ export class MongoPageRepository extends MongoBaseRepository<Page> implements IP
         result.map(r => r.toObject())
         return result
     }
-    async findSection(slug: string): Promise<Section> {
+    async findSection(id: string): Promise<Section> {
         try {
-            const result = await this.sectionModel.findOne({
-                slug
-            })
+            const result = await this.sectionModel.findById(id)
             if (!result?.toObject()) {
-                throw AppError.notFound(`Section with slug ${slug} not found`)
+                throw AppError.notFound(`Section with ID:${id} not found`)
             }
-            return result.toObject() as Section
+            const blocks = Object.fromEntries(result.toObject().blocks as unknown as Map<string, ContentBlock>)
+            return { ...result.toObject(), blocks } as Section
         } catch (error) {
             this.handleError(error)
         }

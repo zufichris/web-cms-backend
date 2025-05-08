@@ -63,7 +63,12 @@ export const GalleryBlockDataSchema = z.object({
 export const VideoBlockDataSchema = z.object({
     id: z.string(),
     type: z.literal("video"),
-    url: z.string().url(),
+    url: z.string({
+        required_error: "video url required",
+        invalid_type_error: "video url must be a string"
+    }).url({
+        message: "Invalid video url"
+    }),
     thumbnailImage: ImageAssetSchema.optional(),
     isEmbedded: z.boolean().optional(),
 });

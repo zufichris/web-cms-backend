@@ -100,7 +100,11 @@ type SectionDoc = Section & Document
 const sectionSchema = new Schema<SectionDoc>({
     name: { type: String, required: true },
     slug: { type: String, required: true },
-    blocks: [contentBlockSchema],
+    blocks: {
+        type: Map,
+        of: contentBlockSchema,
+        default: {},
+    },
     pageId: {
         type: String,
         ref: "Page",

@@ -9,12 +9,12 @@ export class DeletePageUseCase extends BaseUseCase<string, boolean, AuthContext>
         super();
     }
     
-    async beforeExecute(id: string, context?: AuthContext): Promise<void> {
+    async beforeExecute(id: string, _context?: AuthContext): Promise<void> {
         ParamIdValidationSchema.parse(id);
         await this.pageRepository.findById(id);
     }
     
-    async execute(id: string, context?: AuthContext): Promise<UsecaseResult<boolean>> {
+    async execute(id: string, _context?: AuthContext): Promise<UsecaseResult<boolean>> {
         await this.pageRepository.delete(id);
         return { 
             success: true, 
