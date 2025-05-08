@@ -37,11 +37,15 @@ export const AddPageSectionValidationSchema = SectionSchema.omit({
         invalid_type_error: "Section slug must be a string",
         required_error: "Section slug is Required"
     }).toLowerCase(),
-    blocks: z.array(ContentBlockSchema).optional().default([]),
+    blocks: SectionSchema.shape.blocks.optional().default({}),
     pageId: ParamIdValidationSchema
 })
 
 export const AddContentBlockValidationSchema = z.object({
     sectionId: ParamIdValidationSchema,
-    block: ContentBlockSchema
+    block: ContentBlockSchema,
+    key: z.string({
+        message: "Block key is required",
+        invalid_type_error: "Block key must be a string"
+    })
 })

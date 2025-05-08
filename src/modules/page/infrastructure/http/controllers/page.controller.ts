@@ -75,7 +75,7 @@ export class PageController extends BaseController {
         const sectionId = req.params.sectionId
         const data = {
             sectionId,
-            block: (req.validated.body as Record<string, unknown>)
+            ...(req.validated.body as Record<string, unknown>),
         } as AddContentBlockDto
         const result = await this.addContentBlockUseCase.run(data, this.getContext(req));
         if (result.success) logger.info('Controller: Added block', { id: result.data });

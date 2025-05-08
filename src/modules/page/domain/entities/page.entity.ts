@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { BaseEntitySchema} from '@app/shared';
+import { BaseEntitySchema } from '@app/shared';
 
 export const ImageAssetSchema = z.object({
     id: z.string(),
@@ -133,7 +133,7 @@ export const SectionSchema = z.object({
     id: z.string(),
     name: z.string(),
     slug: z.string(),
-    blocks: z.array(ContentBlockSchema),
+    blocks: z.record(z.string(), ContentBlockSchema),
     pageId: z.string()
 });
 

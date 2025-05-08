@@ -1,6 +1,6 @@
 import { Model, Document } from 'mongoose';
 import { IPageRepository } from '@app/modules/page/domain/repositories';
-import { ContentBlock, Page, Section } from '@app/modules/page/domain/entities';
+import { Page, Section } from '@app/modules/page/domain/entities';
 import { MongoBaseRepository } from '@app/shared';
 import { AppError } from '@app/shared';
 import { logger } from '@app/utils';
@@ -56,17 +56,7 @@ export class MongoPageRepository extends MongoBaseRepository<Page> implements IP
     }
     async updateSection(sectionId: string, data: Partial<Section>): Promise<Section> {
         try {
-            let blocks: ContentBlock[] | undefined
-
-            if (data.blocks) {
-                const section = await this.sectionModel.findById(sectionId)
-                if (!section?.toObject()) {
-                    throw AppError.notFound("Section Not Found")
-                }
-                blocks = [...section?.blocks ?? [], ...data.blocks]
-
-            }
-            const result = await this.sectionModel.findByIdAndUpdate(sectionId, { data, blocks }, {
+            const result = await this.sectionModel.findByIdAndUpdate(sectionId, data, {
                 new: true
             })
             if (!result?.toObject()) {
