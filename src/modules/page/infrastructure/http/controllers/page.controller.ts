@@ -6,16 +6,16 @@ import {
     GetPageUseCase,
     UpdatePageUseCase,
     DeletePageUseCase,
-    QueryPageUseCase
-} from '@app/modules/page/domain/use-cases';
+    QueryPageUseCase,
+    AddBlockContentUseCase,
+    GetPageSectionsUseCase,
+    DeletePageSectionUseCase,
+    DeleteBlockContentUseCase,
+    UpdateBlockContentUseCase,
+    AddPageSectionUseCase
+} from '@app/modules/page/domain/';
 import { logger } from '@app/utils/logger';
-import { AddPageSectionUseCase } from '@app/modules/page/domain/use-cases/add-section.use-case';
-import { AddContentBlockDto, AddPageSectionDto, UpdateContentBlockDto } from '@app/modules/page/application';
-import { AddBlockContentUseCase } from '@app/modules/page/domain/use-cases/add-block.use-case';
-import { GetPageSectionsUseCase } from '@app/modules/page/domain/use-cases/get-sections.use-case';
-import { DeletePageSectionUseCase } from '@app/modules/page/domain/use-cases/delete-section.use-case';
-import { DeleteBlockContentUseCase } from '@app/modules/page/domain/use-cases/delete-block.use-case';
-import { UpdateBlockContentUseCase } from '@app/modules/page/domain/use-cases/update-block.use-case';
+import { AddContentBlockDto, AddPageSectionDto, UpdateContentBlockDto, } from '@app/modules/page/application';
 
 export class PageController extends BaseController {
     constructor(
