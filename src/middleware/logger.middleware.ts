@@ -6,11 +6,6 @@ export const loggerMiddleware = ApiHandler(async (req, res, next) => {
   const { method, url, ip } = req;
 
   logger.info(`Incoming ${method.toUpperCase()} ${url} from ${ip}`);
-
-  if (req.body) {
-    logger.debug("Request body:", req.body);
-  }
-
   res.on("finish", () => {
     const duration = Date.now() - start;
     const { statusCode } = res;

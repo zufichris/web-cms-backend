@@ -5,7 +5,6 @@ import { AppError, BaseUseCase, UsecaseResult } from '@app/shared';
 import { AuthContext } from '@app/shared';
 import { AddContentBlockValidationSchema } from '../../infrastructure';
 import { IPageRepository } from '../repositories';
-import { logger } from '@app/utils';
 
 export class AddBlockContentUseCase extends BaseUseCase<AddContentBlockDto, Section, AuthContext> {
     constructor(private readonly pageRepository: IPageRepository) {
@@ -13,9 +12,7 @@ export class AddBlockContentUseCase extends BaseUseCase<AddContentBlockDto, Sect
     }
 
     async beforeExecute(input: AddContentBlockDto): Promise<void> {
-        logger.debug("before",input)
         AddContentBlockValidationSchema.parse(input)
-        logger.debug("Passed",input)
     }
 
     async execute(input: AddContentBlockDto, _context?: AuthContext): Promise<UsecaseResult<Section>> {

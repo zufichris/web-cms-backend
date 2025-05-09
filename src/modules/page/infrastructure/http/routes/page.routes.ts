@@ -24,8 +24,8 @@ export function createPageRouter(controller: PageController): Router {
     router.route("/:pageId/sections/:sectionId/blocks")
         .post(controller.addContentBlock)
 
-    router.route("/:pageId/sections/:sectionId/blocks/:blockId")
-        .post(controller.updateContentBlock)
+    router.route("/:pageId/sections/:sectionId/blocks/:blockKey")
+        .patch(controller.updateContentBlock)
         .delete(controller.deleteContentBlock)
 
     return router;

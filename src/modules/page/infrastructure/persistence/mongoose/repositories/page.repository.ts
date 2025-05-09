@@ -23,7 +23,6 @@ export class MongoPageRepository extends MongoBaseRepository<Page> implements IP
                 blocks: Object.fromEntries(s.blocks as unknown as Map<string, ContentBlock>)
             }))
         }
-        logger.debug("Page", data)
         return data;
     }
     async getAllSections(pageId: string): Promise<Section[]> {
@@ -67,7 +66,8 @@ export class MongoPageRepository extends MongoBaseRepository<Page> implements IP
             if (!result?.toObject()) {
                 throw AppError.notFound("Section Not Found")
             }
-            return result?.toObject() as Section
+            const blocks = Object.fromEntries(result.toObject().blocks as unknown as Map<string, ContentBlock>)
+            return { ...result.toObject(), blocks } as Section
         } catch (error) {
             this.handleError(error)
         }

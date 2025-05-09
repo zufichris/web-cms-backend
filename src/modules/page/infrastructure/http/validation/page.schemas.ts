@@ -52,7 +52,7 @@ export const AddContentBlockValidationSchema = z.object({
 
 export const UpdateContentBlockValidationSchema = z.object({
     sectionId: ParamIdValidationSchema,
-    block: ContentBlockSchema,
+    block:z.record(z.string(),z.unknown()),
     key: z.coerce.string({
         required_error: "Block key is required",
         message: "Block key is required"

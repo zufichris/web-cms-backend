@@ -5,7 +5,6 @@ import { AppError, BaseUseCase, UsecaseResult } from '@app/shared';
 import { AuthContext } from '@app/shared';
 import { UpdateContentBlockValidationSchema } from '../../infrastructure';
 import { IPageRepository } from '../repositories';
-import { logger } from '@app/utils';
 
 export class UpdateBlockContentUseCase extends BaseUseCase<UpdateContentBlockDto, Section, AuthContext> {
     constructor(private readonly pageRepository: IPageRepository) {
@@ -13,9 +12,7 @@ export class UpdateBlockContentUseCase extends BaseUseCase<UpdateContentBlockDto
     }
 
     async beforeExecute(input: UpdateContentBlockDto): Promise<void> {
-        logger.debug("before", input)
         UpdateContentBlockValidationSchema.parse(input)
-        logger.debug("Passed", input)
     }
 
     async execute(input: UpdateContentBlockDto, _context?: AuthContext): Promise<UsecaseResult<Section>> {
@@ -26,10 +23,8 @@ export class UpdateBlockContentUseCase extends BaseUseCase<UpdateContentBlockDto
                 `Block with key ${input.key} does not exists on section ${prev.name}`
             )
         }
-        const updatedBlocks: Record<string, ContentBlock> = {
-            ...prev.blocks,
-            [input.key]: { ...prev.blocks[input.key], ...input.block },
-        }
+        const updatedBlocks: Record<string, ContentBlock> = prev.blocks
+        updatedBlocks[input.key] = input.block
         const section = await this.pageRepository.updateSection(input.sectionId, { blocks: updatedBlocks });
         return {
             success: true,

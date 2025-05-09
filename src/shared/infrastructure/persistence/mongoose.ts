@@ -33,7 +33,6 @@ export abstract class MongoBaseRepository<Entity> implements IBaseRepository<Ent
     const projection = this.buildProjection(QFields);
     const filter = this.buildFilters(QFilters);
     const options = this.buildOptions(QOptions);
-    logger.debug("Mongoose Query", { filter, projection, options });
     return { filter, projection, options };
   }
 

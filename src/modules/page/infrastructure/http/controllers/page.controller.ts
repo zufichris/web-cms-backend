@@ -15,7 +15,7 @@ import {
     AddPageSectionUseCase
 } from '@app/modules/page/domain/';
 import { logger } from '@app/utils/logger';
-import { AddContentBlockDto, AddPageSectionDto, UpdateContentBlockDto, } from '@app/modules/page/application';
+import { AddContentBlockDto, AddPageSectionDto } from '@app/modules/page/application';
 
 export class PageController extends BaseController {
     constructor(
@@ -85,7 +85,7 @@ export class PageController extends BaseController {
         const result = await this.getSectionsUseCase.run({
             pageId
         }, this.getContext(req));
-        if (result.success) logger.info('Controller: Added section', { id: result.data });
+        if (result.success) logger.info('Controller: Retrieved sections', { id: result.data });
         res.json_structured(result);
     })
 
@@ -95,7 +95,7 @@ export class PageController extends BaseController {
         const result = await this.deleteSectionUseCase.run({
             sectionId
         }, this.getContext(req));
-        if (result.success) logger.info('Controller: Added section', { id: result.data });
+        if (result.success) logger.info('Controller: Deleted section', { id: result.data });
         res.json_structured(result);
     });
 
@@ -111,24 +111,24 @@ export class PageController extends BaseController {
     });
 
     updateContentBlock = ApiHandler(async (req: Request, res: Response) => {
-        const sectionId = req.params.sectionId
         const data = {
-            sectionId,
-            ...(req.validated.body as Record<string, unknown>),
-        } as UpdateContentBlockDto
+            block: req.body,
+            key: req.params.blockKey,
+            sectionId: req.params.sectionId
+        }
         const result = await this.updateContentBlockUseCase.run(data, this.getContext(req));
-        if (result.success) logger.info('Controller: Added block', { id: result.data });
+        if (result.success) logger.info('Controller: Updated block', { id: result.data });
         res.json_structured(result);
     });
 
     deleteContentBlock = ApiHandler(async (req: Request, res: Response) => {
         const sectionId = req.params.sectionId
-        const data = {
+        const blockKey = req.params.blockKey
+        const result = await this.deleteContentBlockUseCase.run({
             sectionId,
-            ...(req.validated.body as Record<string, unknown>),
-        } as AddContentBlockDto
-        const result = await this.deleteContentBlockUseCase.run(data, this.getContext(req));
-        if (result.success) logger.info('Controller: Added block', { id: result.data });
+            key: blockKey
+        }, this.getContext(req));
+        if (result.success) logger.info('Controller: Deleted block', { id: result.data });
         res.json_structured(result);
     });
 
