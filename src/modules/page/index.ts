@@ -8,14 +8,13 @@ import {
     PageController, createPageRouter, PageModel, SectionModel, MongoPageRepository
 } from './infrastructure';
 import {
-    CreatePageUseCase, GetPageUseCase, UpdatePageUseCase, DeletePageUseCase, QueryPageUseCase, AddPageSectionUseCase, GetPageSectionsUseCase, DeletePageSectionUseCase, AddBlockContentUseCase, DeleteBlockContentUseCase, UpdateBlockContentUseCase
+    CreatePageUseCase, GetPageUseCase, UpdatePageUseCase, DeletePageUseCase, QueryPageUseCase, AddPageSectionUseCase, GetPageSectionsUseCase, DeletePageSectionUseCase, AddBlockContentUseCase, DeleteBlockContentUseCase, UpdateBlockContentUseCase,
+    GetPageSectionByIdUseCase
 } from './domain/use-cases';
 import { logger } from '@app/utils/logger';
 
 export function initPageModule(): Router {
-    logger.info('Initializing Page Module...');
     const pageRepository = new MongoPageRepository(PageModel, SectionModel);
-
 
     const controller = new PageController(
         new CreatePageUseCase(pageRepository),
@@ -25,10 +24,11 @@ export function initPageModule(): Router {
         new QueryPageUseCase(pageRepository),
         new AddPageSectionUseCase(pageRepository),
         new GetPageSectionsUseCase(pageRepository),
+        new GetPageSectionByIdUseCase(pageRepository),
         new DeletePageSectionUseCase(pageRepository),
         new AddBlockContentUseCase(pageRepository),
         new DeleteBlockContentUseCase(pageRepository),
-        new UpdateBlockContentUseCase(pageRepository)
+        new UpdateBlockContentUseCase(pageRepository),
     )
 
     const router = createPageRouter(controller);

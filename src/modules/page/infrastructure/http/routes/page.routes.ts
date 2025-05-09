@@ -20,6 +20,7 @@ export function createPageRouter(controller: PageController): Router {
 
     router.route("/:pageId/sections/:sectionId")
         .delete(controller.deleteSection)
+        .get(controller.getSectionById)
 
     router.route("/:pageId/sections/:sectionId/blocks")
         .post(controller.addContentBlock)

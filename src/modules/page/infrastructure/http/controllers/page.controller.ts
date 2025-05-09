@@ -12,7 +12,8 @@ import {
     DeletePageSectionUseCase,
     DeleteBlockContentUseCase,
     UpdateBlockContentUseCase,
-    AddPageSectionUseCase
+    AddPageSectionUseCase,
+    GetPageSectionByIdUseCase
 } from '@app/modules/page/domain/';
 import { logger } from '@app/utils/logger';
 import { AddContentBlockDto, AddPageSectionDto } from '@app/modules/page/application';
@@ -26,6 +27,7 @@ export class PageController extends BaseController {
         private readonly queryPageUseCase: QueryPageUseCase,
         private readonly addSectionUseCase: AddPageSectionUseCase,
         private readonly getSectionsUseCase: GetPageSectionsUseCase,
+        private readonly getSectionByIdUseCase:GetPageSectionByIdUseCase,
         private readonly deleteSectionUseCase: DeletePageSectionUseCase,
         private readonly addContentBlockUseCase: AddBlockContentUseCase,
         private readonly deleteContentBlockUseCase: DeleteBlockContentUseCase,
@@ -86,6 +88,17 @@ export class PageController extends BaseController {
             pageId
         }, this.getContext(req));
         if (result.success) logger.info('Controller: Retrieved sections', { id: result.data });
+        res.json_structured(result);
+    })
+
+    getSectionById= ApiHandler(async (req: Request, res: Response) => {
+        const pageId = req.params.pageId
+        const sectionId = req.params.sectionId
+
+        const result = await this.getSectionByIdUseCase.run({
+            pageId,
+            sectionId
+        }, this.getContext(req));
         res.json_structured(result);
     })
 

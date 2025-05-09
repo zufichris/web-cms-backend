@@ -10,3 +10,4 @@ export * from "./delete-section.use-case";
 export * from "./add-block.use-case";
 export * from "./update-block.use-case";
 export * from "./delete-block.use-case";
+export * from "./get-section-by-id.use-case"
