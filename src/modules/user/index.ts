@@ -8,17 +8,23 @@ import { UserController } from './infrastructure/http/controllers';
 import { createUserRouter } from './infrastructure/http/routes';
 import { CreateUserUseCase, GetUserUseCase, UpdateUserUseCase, DeleteUserUseCase, QueryUserUseCase } from './domain/use-cases';
 import { logger } from '@app/utils/logger';
+import { createAuthMiddleware } from '@app/services/auth/auth.middleware';
+import { AuthService } from '@app/services/auth/auth.service';
 
 export function initUserModule(): Router {
-    logger.info(`Initializing User Module...`);
     const userRepository = new MongooseUserRepository(UserModel);
-    const createUseCase = new CreateUserUseCase(userRepository);
-    const getUseCase = new GetUserUseCase(userRepository);
-    const updateUseCase = new UpdateUserUseCase(userRepository);
-    const deleteUseCase = new DeleteUserUseCase(userRepository);
-    const queryUseCase = new QueryUserUseCase(userRepository);
-    const controller = new UserController(createUseCase, getUseCase, updateUseCase, deleteUseCase, queryUseCase);
-    const router = createUserRouter(controller);
+
+    const controller = new UserController(
+        new CreateUserUseCase(userRepository),
+        new GetUserUseCase(userRepository),
+        new UpdateUserUseCase(userRepository),
+        new DeleteUserUseCase(userRepository),
+        new QueryUserUseCase(userRepository),
+    );
+
+    const authMiddleware = createAuthMiddleware(new AuthService(userRepository))
+
+    const router = createUserRouter(controller, authMiddleware);
     logger.info(`User Module initialized successfully`);
     return router;
 }

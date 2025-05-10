@@ -5,28 +5,10 @@ import { assert } from 'console';
 
 const users = [
     {
-        name: 'Test Admin',
-        email: 'admin@webcms.com',
+        name: `Test Admin`,
+        email: 'test@gmail.com',
         password: 'Admin@123',
         role: "ADMIN",
-        isActive: true,
-        createdAt: new Date(Date.now()),
-        updatedAt: new Date(Date.now()),
-    },
-    {
-        name: 'Test Editor',
-        email: 'editor@webcms.com',
-        password: 'Editor@123',
-        role: "EDITOR",
-        isActive: true,
-        createdAt: new Date(Date.now()),
-        updatedAt: new Date(Date.now()),
-    },
-    {
-        name: 'Test Viewer',
-        email: 'viewer@webcms.com',
-        password: 'Viewer@123',
-        role: "USER",
         isActive: true,
         createdAt: new Date(Date.now()),
         updatedAt: new Date(Date.now()),

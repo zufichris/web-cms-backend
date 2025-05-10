@@ -6,7 +6,6 @@ import { Router } from "express";
 
 
 export function initEmailService(): Router {
-    logger.info("initializing email service")
     const emailService = new EmailService()
     const authControllers = new EmailServiceControllers(emailService)
     const router = createEmailServiceRouter(authControllers)

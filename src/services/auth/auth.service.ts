@@ -55,6 +55,7 @@ export class AuthService {
     async login(data: LoginDto) {
         const valid = LoginSchema.parse(data);
         const user = await this.userRepository.findByEmail(valid.email).catch(_err => { })
+        logger.debug("valid", valid)
 
         if (!user) {
             throw AppError.unauthorized("Invalid email or password");
@@ -63,7 +64,7 @@ export class AuthService {
         const isPasswordValid = await bcrypt.compare(valid.password, user.password);
 
         if (!isPasswordValid) {
-            throw AppError.unauthorized("Incorrect email or password");
+            throw AppError.unauthorized(`${valid.password}Incorrect email or password:`);
         }
 
         const accessToken = this.signJWT({

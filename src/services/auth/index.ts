@@ -7,12 +7,10 @@ import { createAuthMiddleware } from "./auth.middleware";
 import { Router } from "express";
 
 
-export function initAuthService(): Router {
-    logger.info("initializing auth service")
-    const authService = new AuthService(new MongooseUserRepository(UserModel))
+export function initAuthService(): Router {    const authService = new AuthService(new MongooseUserRepository(UserModel))
     const authControllers = new AuthControllers(authService)
     const authMiddleware = createAuthMiddleware(authService)
     const router = createAuthRouter(authControllers, authMiddleware)
-    logger.info("auth service initialized")
+    logger.info("Auth service initialized")
     return router
 }

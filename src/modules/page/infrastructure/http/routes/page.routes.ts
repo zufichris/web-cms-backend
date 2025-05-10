@@ -1,18 +1,19 @@
 
 import { Router } from 'express';
 import { PageController } from '@app/modules/page';
+import { createAuthMiddleware } from '@app/services/auth/auth.middleware';
 
-export function createPageRouter(controller: PageController): Router {
+export function createPageRouter(controller: PageController, authMiddleware: ReturnType<typeof createAuthMiddleware>): Router {
     const router = Router();
 
-    router.route('/')
+    router.use(authMiddleware.authenticate, authMiddleware.authorizeOwnerOrAdmin("ownerId")).route('/')
         .get(controller.getAll)
         .post(controller.create);
 
     router.route('/:id')
         .get(controller.getById)
-        .patch(controller.update)
-        .delete(controller.delete);
+        .patch(authMiddleware.authenticate, authMiddleware.authorizeOwnerOrAdmin("ownerId"), controller.update)
+        .delete(authMiddleware.authenticate, authMiddleware.authorizeOwnerOrAdmin("ownerId"), controller.delete);
 
     router.route("/:pageId/sections")
         .post(controller.addSection)
@@ -22,10 +23,10 @@ export function createPageRouter(controller: PageController): Router {
         .delete(controller.deleteSection)
         .get(controller.getSectionById)
 
-    router.route("/:pageId/sections/:sectionId/blocks")
+    router.use(authMiddleware.authenticate, authMiddleware.authorizeOwnerOrAdmin("ownerId")).route("/:pageId/sections/:sectionId/blocks")
         .post(controller.addContentBlock)
 
-    router.route("/:pageId/sections/:sectionId/blocks/:blockKey")
+    router.use(authMiddleware.authenticate, authMiddleware.authorizeOwnerOrAdmin("ownerId")).route("/:pageId/sections/:sectionId/blocks/:blockKey")
         .patch(controller.updateContentBlock)
         .delete(controller.deleteContentBlock)
 
