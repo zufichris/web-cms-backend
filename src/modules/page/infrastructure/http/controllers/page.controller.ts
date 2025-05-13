@@ -27,7 +27,7 @@ export class PageController extends BaseController {
         private readonly queryPageUseCase: QueryPageUseCase,
         private readonly addSectionUseCase: AddPageSectionUseCase,
         private readonly getSectionsUseCase: GetPageSectionsUseCase,
-        private readonly getSectionByIdUseCase:GetPageSectionByIdUseCase,
+        private readonly getSectionByIdUseCase: GetPageSectionByIdUseCase,
         private readonly deleteSectionUseCase: DeletePageSectionUseCase,
         private readonly addContentBlockUseCase: AddBlockContentUseCase,
         private readonly deleteContentBlockUseCase: DeleteBlockContentUseCase,
@@ -43,8 +43,14 @@ export class PageController extends BaseController {
     });
 
     getById = ApiHandler(async (req: Request, res: Response) => {
-        const result = await this.getPageUseCase.run(req.params.id, this.getContext(req));
+        const result = await this.getPageUseCase.run({ pageId: req.params.id }, this.getContext(req));
         if (result.success) logger.info('Controller: Retrieved Page', { id: req.params.id });
+        res.json_structured(result);
+    });
+
+    getBySlug = ApiHandler(async (req: Request, res: Response) => {
+        const result = await this.getPageUseCase.run({ slug: req.params.slug }, this.getContext(req));
+        if (result.success) logger.info('Controller: Retrieved Page', { slug: req.params.slug });
         res.json_structured(result);
     });
 
@@ -91,7 +97,7 @@ export class PageController extends BaseController {
         res.json_structured(result);
     })
 
-    getSectionById= ApiHandler(async (req: Request, res: Response) => {
+    getSectionById = ApiHandler(async (req: Request, res: Response) => {
         const pageId = req.params.pageId
         const sectionId = req.params.sectionId
 
