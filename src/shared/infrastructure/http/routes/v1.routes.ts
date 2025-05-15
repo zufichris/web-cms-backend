@@ -12,7 +12,11 @@ const startTime = new Date();
 
 const endpointStats = new Map<string, EndpointStat>();
 
-const trackRequestDuration = (req: Request, res: Response, next: NextFunction) => {
+const trackRequestDuration = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   const start = process.hrtime();
   const method = req.method;
   const path = req.path;
@@ -21,19 +25,22 @@ const trackRequestDuration = (req: Request, res: Response, next: NextFunction) =
   // Ensure the endpoint exists in our tracking map with proper structure
   if (!endpointStats.has(endpoint)) {
     // Try to identify the module from the path
-    const pathSegments = path.split('/').filter(Boolean);
-    let module = pathSegments.length > 1 ? pathSegments[1] : 'unknown';
+    const pathSegments = path.split("/").filter(Boolean);
+    let module = pathSegments.length > 1 ? pathSegments[1] : "unknown";
 
     // Make sure module is one of our known modules
-    const knownModules = ['auth', 'email', 'page', 'user'];
+    const knownModules = ["auth", "email", "page", "user"];
     if (!knownModules.includes(module)) {
-      module = 'other';
+      module = "other";
     }
 
     // Determine if the endpoint is secured (this is a heuristic)
-    const secured = path.includes('/me') ||
-      (method !== 'GET' && !path.includes('/login') &&
-        !path.includes('/register') && !path.includes('/refresh-token'));
+    const secured =
+      path.includes("/me") ||
+      (method !== "GET" &&
+        !path.includes("/login") &&
+        !path.includes("/register") &&
+        !path.includes("/refresh-token"));
 
     endpointStats.set(endpoint, {
       hits: 0,
@@ -44,12 +51,12 @@ const trackRequestDuration = (req: Request, res: Response, next: NextFunction) =
       method: method,
       module: module,
       secured: secured,
-      errors: 0
+      errors: 0,
     });
   }
 
   // Update stats when the response is finished
-  res.on('finish', () => {
+  res.on("finish", () => {
     const hrtime = process.hrtime(start);
     const responseTimeMs = hrtime[0] * 1000 + hrtime[1] / 1000000;
     const statusCode = res.statusCode;
@@ -119,7 +126,8 @@ const API_INFO = {
     {
       path: `${BASE_PATH}/analytics`,
       method: "GET",
-      description: "Comprehensive analytics with system metrics, endpoint usage, and performance data",
+      description:
+        "Comprehensive analytics with system metrics, endpoint usage, and performance data",
       params: [
         {
           name: "period",
@@ -250,7 +258,9 @@ router.get(`${BASE_PATH}/health`, (req: Request, res: Response) => {
   };
 
   const uptimeMs = currentTime.getTime() - startTime.getTime();
-  const requestsPerMinute = (requestsServed / (uptimeMs / 1000 / 60)).toFixed(2);
+  const requestsPerMinute = (requestsServed / (uptimeMs / 1000 / 60)).toFixed(
+    2,
+  );
 
   res.status(200).json({
     status: "healthy",
@@ -322,37 +332,162 @@ interface EndpointStat {
 
 const initializeEndpointStats = () => {
   const knownEndpoints = [
-    { path: `${BASE_PATH}/auth/register`, module: 'auth', secured: false, method: 'POST' },
-    { path: `${BASE_PATH}/auth/login`, module: 'auth', secured: false, method: 'POST' },
-    { path: `${BASE_PATH}/auth/refresh-token`, module: 'auth', secured: false, method: 'POST' },
-    { path: `${BASE_PATH}/auth/me`, module: 'auth', secured: true, method: 'GET' },
-    { path: `${BASE_PATH}/auth/change-password`, module: 'auth', secured: true, method: 'POST' },
+    {
+      path: `${BASE_PATH}/auth/register`,
+      module: "auth",
+      secured: false,
+      method: "POST",
+    },
+    {
+      path: `${BASE_PATH}/auth/login`,
+      module: "auth",
+      secured: false,
+      method: "POST",
+    },
+    {
+      path: `${BASE_PATH}/auth/refresh-token`,
+      module: "auth",
+      secured: false,
+      method: "POST",
+    },
+    {
+      path: `${BASE_PATH}/auth/me`,
+      module: "auth",
+      secured: true,
+      method: "GET",
+    },
+    {
+      path: `${BASE_PATH}/auth/change-password`,
+      module: "auth",
+      secured: true,
+      method: "POST",
+    },
 
-    { path: `${BASE_PATH}/email/send-mail`, module: 'email', secured: false, method: 'POST' },
-    { path: `${BASE_PATH}/email/get-templates`, module: 'email', secured: false, method: 'GET' },
+    {
+      path: `${BASE_PATH}/email/send-mail`,
+      module: "email",
+      secured: false,
+      method: "POST",
+    },
+    {
+      path: `${BASE_PATH}/email/get-templates`,
+      module: "email",
+      secured: false,
+      method: "GET",
+    },
 
-    { path: `${BASE_PATH}/pages`, module: 'page', secured: true, method: 'GET' },
-    { path: `${BASE_PATH}/pages`, module: 'page', secured: true, method: 'POST' },
-    { path: `${BASE_PATH}/pages/:id`, module: 'page', secured: true, method: 'GET' },
-    { path: `${BASE_PATH}/pages/:id`, module: 'page', secured: true, method: 'PATCH' },
-    { path: `${BASE_PATH}/pages/:id`, module: 'page', secured: true, method: 'DELETE' },
-    { path: `${BASE_PATH}/pages/:pageId/sections`, module: 'page', secured: true, method: 'POST' },
-    { path: `${BASE_PATH}/pages/:pageId/sections`, module: 'page', secured: true, method: 'GET' },
-    { path: `${BASE_PATH}/pages/:pageId/sections/:sectionId`, module: 'page', secured: true, method: 'DELETE' },
-    { path: `${BASE_PATH}/pages/:pageId/sections/:sectionId`, module: 'page', secured: true, method: 'GET' },
-    { path: `${BASE_PATH}/pages/:pageId/sections/:sectionId/blocks`, module: 'page', secured: true, method: 'POST' },
-    { path: `${BASE_PATH}/pages/:pageId/sections/:sectionId/blocks/:blockKey`, module: 'page', secured: true, method: 'PATCH' },
-    { path: `${BASE_PATH}/pages/:pageId/sections/:sectionId/blocks/:blockKey`, module: 'page', secured: true, method: 'DELETE' },
+    {
+      path: `${BASE_PATH}/pages`,
+      module: "page",
+      secured: true,
+      method: "GET",
+    },
+    {
+      path: `${BASE_PATH}/pages`,
+      module: "page",
+      secured: true,
+      method: "POST",
+    },
+    {
+      path: `${BASE_PATH}/pages/:id`,
+      module: "page",
+      secured: true,
+      method: "GET",
+    },
+    {
+      path: `${BASE_PATH}/pages/:id`,
+      module: "page",
+      secured: true,
+      method: "PATCH",
+    },
+    {
+      path: `${BASE_PATH}/pages/:id`,
+      module: "page",
+      secured: true,
+      method: "DELETE",
+    },
+    {
+      path: `${BASE_PATH}/pages/:pageId/sections`,
+      module: "page",
+      secured: true,
+      method: "POST",
+    },
+    {
+      path: `${BASE_PATH}/pages/:pageId/sections`,
+      module: "page",
+      secured: true,
+      method: "GET",
+    },
+    {
+      path: `${BASE_PATH}/pages/:pageId/sections/:sectionId`,
+      module: "page",
+      secured: true,
+      method: "DELETE",
+    },
+    {
+      path: `${BASE_PATH}/pages/:pageId/sections/:sectionId`,
+      module: "page",
+      secured: true,
+      method: "GET",
+    },
+    {
+      path: `${BASE_PATH}/pages/:pageId/sections/:sectionId/blocks`,
+      module: "page",
+      secured: true,
+      method: "POST",
+    },
+    {
+      path: `${BASE_PATH}/pages/:pageId/sections/:sectionId/blocks/:blockKey`,
+      module: "page",
+      secured: true,
+      method: "PATCH",
+    },
+    {
+      path: `${BASE_PATH}/pages/:pageId/sections/:sectionId/blocks/:blockKey`,
+      module: "page",
+      secured: true,
+      method: "DELETE",
+    },
 
-    { path: `${BASE_PATH}/users`, module: 'user', secured: true, method: 'GET' },
-    { path: `${BASE_PATH}/users`, module: 'user', secured: true, method: 'POST' },
-    { path: `${BASE_PATH}/users/me`, module: 'user', secured: true, method: 'GET' },
-    { path: `${BASE_PATH}/users/:id`, module: 'user', secured: true, method: 'GET' },
-    { path: `${BASE_PATH}/users/:id`, module: 'user', secured: true, method: 'PATCH' },
-    { path: `${BASE_PATH}/users/:id`, module: 'user', secured: true, method: 'DELETE' },
+    {
+      path: `${BASE_PATH}/users`,
+      module: "user",
+      secured: true,
+      method: "GET",
+    },
+    {
+      path: `${BASE_PATH}/users`,
+      module: "user",
+      secured: true,
+      method: "POST",
+    },
+    {
+      path: `${BASE_PATH}/users/me`,
+      module: "user",
+      secured: true,
+      method: "GET",
+    },
+    {
+      path: `${BASE_PATH}/users/:id`,
+      module: "user",
+      secured: true,
+      method: "GET",
+    },
+    {
+      path: `${BASE_PATH}/users/:id`,
+      module: "user",
+      secured: true,
+      method: "PATCH",
+    },
+    {
+      path: `${BASE_PATH}/users/:id`,
+      module: "user",
+      secured: true,
+      method: "DELETE",
+    },
   ];
 
-  knownEndpoints.forEach(endpoint => {
+  knownEndpoints.forEach((endpoint) => {
     endpointStats.set(`${endpoint.method}:${endpoint.path}`, {
       hits: 0,
       lastAccessed: null,
@@ -362,7 +497,7 @@ const initializeEndpointStats = () => {
       method: endpoint.method,
       module: endpoint.module,
       secured: endpoint.secured,
-      errors: 0
+      errors: 0,
     });
   });
 };
@@ -370,13 +505,21 @@ const initializeEndpointStats = () => {
 initializeEndpointStats();
 
 const getRequestsByModule = () => {
-  const moduleStats: Record<string, { total: number, secured: number, unsecured: number, errors: number }> = {};
+  const moduleStats: Record<
+    string,
+    { total: number; secured: number; unsecured: number; errors: number }
+  > = {};
 
   endpointStats.forEach((stats) => {
     if (!stats.module) return;
 
     if (!moduleStats[stats.module]) {
-      moduleStats[stats.module] = { total: 0, secured: 0, unsecured: 0, errors: 0 };
+      moduleStats[stats.module] = {
+        total: 0,
+        secured: 0,
+        unsecured: 0,
+        errors: 0,
+      };
     }
 
     moduleStats[stats.module].total += stats.hits;
@@ -395,7 +538,7 @@ const getRequestsByModule = () => {
 const getStatusCodeDistribution = () => {
   const distribution: Record<number, number> = {};
 
-  endpointStats.forEach(stats => {
+  endpointStats.forEach((stats) => {
     Object.entries(stats.statusCodes).forEach(([code, count]) => {
       const numericCode = parseInt(code);
       if (!distribution[numericCode]) {
@@ -415,19 +558,25 @@ router.get(`${BASE_PATH}/analytics`, (req: Request, res: Response) => {
   const uptimeMs = currentTime.getTime() - startTime.getTime();
   const endpointMetrics = Array.from(endpointStats.entries())
     .map(([endpoint, stats]) => {
-      const [method, path] = endpoint.split(':');
+      const [method, path] = endpoint.split(":");
       return {
         endpoint: path,
         method,
-        module: stats.module || 'unknown',
+        module: stats.module || "unknown",
         secured: stats.secured || false,
         hits: stats.hits,
         errors: stats.errors,
-        errorRate: stats.hits > 0 ? `${((stats.errors / stats.hits) * 100).toFixed(1)}%` : '0%',
+        errorRate:
+          stats.hits > 0
+            ? `${((stats.errors / stats.hits) * 100).toFixed(1)}%`
+            : "0%",
         lastAccessed: stats.lastAccessed?.toISOString() || null,
         averageResponseTime: `${stats.averageResponseTime.toFixed(2)}ms`,
         statusCodes: stats.statusCodes,
-        percentage: requestsServed > 0 ? `${((stats.hits / requestsServed) * 100).toFixed(1)}%` : '0%'
+        percentage:
+          requestsServed > 0
+            ? `${((stats.hits / requestsServed) * 100).toFixed(1)}%`
+            : "0%",
       };
     })
     .sort((a, b) => b.hits - a.hits);
@@ -456,11 +605,15 @@ router.get(`${BASE_PATH}/analytics`, (req: Request, res: Response) => {
   const statusCodeDistribution = getStatusCodeDistribution();
 
   // Calculate error rate
-  const totalErrors = Object.values(statusCodeDistribution).reduce((acc, count) => {
-    return acc + (count >= 400 && count < 600 ? count : 0);
-  }, 0);
+  const totalErrors = Object.values(statusCodeDistribution).reduce(
+    (acc, count) => {
+      return acc + (count >= 400 && count < 600 ? count : 0);
+    },
+    0,
+  );
 
-  const errorRate = requestsServed > 0 ? (totalErrors / requestsServed) * 100 : 0;
+  const errorRate =
+    requestsServed > 0 ? (totalErrors / requestsServed) * 100 : 0;
 
   // Base response object
   const response = {
@@ -475,17 +628,25 @@ router.get(`${BASE_PATH}/analytics`, (req: Request, res: Response) => {
       total: requestsServed,
       rates: requestRates,
       errorRate: `${errorRate.toFixed(2)}%`,
-      statusCodes: statusCodeDistribution
+      statusCodes: statusCodeDistribution,
     },
-    modules: Object.entries(moduleStats).map(([name, stats]) => ({
-      name,
-      total: stats.total,
-      secured: stats.secured,
-      unsecured: stats.unsecured,
-      errors: stats.errors,
-      errorRate: stats.total > 0 ? `${((stats.errors / stats.total) * 100).toFixed(2)}%` : '0%',
-      percentage: requestsServed > 0 ? `${((stats.total / requestsServed) * 100).toFixed(1)}%` : '0%'
-    })).sort((a, b) => b.total - a.total),
+    modules: Object.entries(moduleStats)
+      .map(([name, stats]) => ({
+        name,
+        total: stats.total,
+        secured: stats.secured,
+        unsecured: stats.unsecured,
+        errors: stats.errors,
+        errorRate:
+          stats.total > 0
+            ? `${((stats.errors / stats.total) * 100).toFixed(2)}%`
+            : "0%",
+        percentage:
+          requestsServed > 0
+            ? `${((stats.total / requestsServed) * 100).toFixed(1)}%`
+            : "0%",
+      }))
+      .sort((a, b) => b.total - a.total),
     topEndpoints: endpointMetrics.slice(0, 5),
   };
 
@@ -500,17 +661,17 @@ router.get(`${BASE_PATH}/analytics`, (req: Request, res: Response) => {
         cpu: {
           loadAverage: os.loadavg(),
           cores: os.cpus().length,
-          utilizationPercent: `${(os.loadavg()[0] / os.cpus().length * 100).toFixed(1)}%`
-        }
+          utilizationPercent: `${((os.loadavg()[0] / os.cpus().length) * 100).toFixed(1)}%`,
+        },
       },
       securityMetrics: {
         securedEndpointRequests: endpointMetrics
-          .filter(endpoint => endpoint.secured)
+          .filter((endpoint) => endpoint.secured)
           .reduce((acc, endpoint) => acc + endpoint.hits, 0),
         unsecuredEndpointRequests: endpointMetrics
-          .filter(endpoint => !endpoint.secured)
+          .filter((endpoint) => !endpoint.secured)
           .reduce((acc, endpoint) => acc + endpoint.hits, 0),
-      }
+      },
     });
   }
 
@@ -518,7 +679,7 @@ router.get(`${BASE_PATH}/analytics`, (req: Request, res: Response) => {
     message: "Analytics Retrieved successfully",
     status: 200,
     success: true,
-    data: response
+    data: response,
   } as ResponseDefault<unknown>);
 });
 
