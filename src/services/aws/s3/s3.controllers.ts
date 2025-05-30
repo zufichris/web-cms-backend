@@ -25,6 +25,7 @@ export class S3Controllers {
       type: req.body.type,
       buffer: req.body.file,
     };
+    logger.debug("BODY", req.body);
     const uploaded = await this.s3Service.uploadFile(
       data.key,
       data.buffer,
@@ -41,7 +42,6 @@ export class S3Controllers {
 
   download = ApiHandler(async (req: Request, res: Response) => {
     const key = Object.values(req.params).join("/");
-    logger.debug("Key is", key);
 
     const file = await this.s3Service.downloadFile(key);
 

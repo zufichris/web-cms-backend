@@ -153,8 +153,6 @@ export class S3Service {
           size: item.Size,
         }),
       );
-      console.log(files);
-
       logger.info(
         `Listed ${files.length} files from S3 with prefix: '${prefix || ""}'`,
       );
